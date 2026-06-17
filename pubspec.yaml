@@ -1,0 +1,27 @@
+name: dolimit
+description: "DoLimit / 今日やる枠 — タスクを溜めずに今日に決着させるタスク遂行アプリ"
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  provider: ^6.1.2
+  shared_preferences: ^2.3.2   # Web/Android/iOS 共通のローカル保存
+  uuid: ^4.5.1
+  intl: ^0.19.0
+
+  # --- ネイティブ専用（Android/iOS リリース時に有効化）。Web デモではスタブ実装を使用 ---
+  # flutter_local_notifications: ^17.2.3
+  # home_widget: ^0.6.0
+  # flutter_app_badger: ^1.5.0
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

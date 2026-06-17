@@ -1,0 +1,25 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Generated platform dirs (regenerated in CI via `flutter create .`)
+# 必要ならローカル開発時にコミットしてもよい
+/android/
+/ios/
+/web/
+/linux/
+/macos/
+/windows/
+.metadata

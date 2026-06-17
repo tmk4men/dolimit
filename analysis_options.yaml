@@ -1,0 +1,12 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # デモ段階では未使用などを警告に留めてビルドを止めない
+    unused_import: warning
+    deprecated_member_use: ignore
+
+linter:
+  rules:
+    prefer_const_constructors: false
+    use_build_context_synchronously: false
