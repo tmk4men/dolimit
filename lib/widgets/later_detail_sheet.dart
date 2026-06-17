@@ -4,6 +4,7 @@ import '../models/task.dart';
 import '../models/enums.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 
 /// LATER 詳細設定：開始日 / 開始時刻 / 事前通知 / 自動移動 ON/OFF
 class LaterDetailSheet extends StatefulWidget {
@@ -80,7 +81,9 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('LATER 詳細設定', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SheetHandle(),
+            const SizedBox(height: 6),
+            const Text('LATER 詳細設定', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             const Text('LATERは墓場じゃない。未来のTODAY。',
                 style: TextStyle(fontSize: 12, color: AppTheme.sub)),

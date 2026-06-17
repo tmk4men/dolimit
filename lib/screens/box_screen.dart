@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
 import '../widgets/task_card.dart';
+import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 
@@ -22,32 +23,26 @@ class BoxScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: Row(
-            children: [
-              const Text('BOX', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
-              const SizedBox(width: 8),
-              Text('${tasks.length}/${Limits.box}',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: tasks.length >= Limits.box ? AppTheme.todayAccent : AppTheme.sub)),
-            ],
-          ),
+        ScreenHeader(
+          title: 'BOX',
+          count: tasks.length,
+          capacity: Limits.box,
         ),
         // スワイプ説明（常に薄く表示）
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          padding: EdgeInsets.fromLTRB(20, 2, 20, 6),
           child: _SwipeHint(),
         ),
         Expanded(
           child: tasks.isEmpty
-              ? _empty()
+              ? const EmptyState(
+                  icon: Icons.inbox_outlined,
+                  title: 'BOXは空です',
+                  subtitle: '＋ で、やることを入れよう。')
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 130),
                   itemCount: tasks.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (_, i) => _swipeable(context, app, tasks[i]),
                 ),
         ),
@@ -58,10 +53,11 @@ class BoxScreen extends StatelessWidget {
   Widget _swipeable(BuildContext context, AppState app, TaskItem task) {
     return Dismissible(
       key: ValueKey(task.id),
-      // 右スワイプ = TODAY（赤〜オレンジ）
-      background: _bg(Alignment.centerLeft, AppTheme.todayAccent, Icons.wb_sunny, 'TODAY'),
+      movementDuration: const Duration(milliseconds: 220),
+      // 右スワイプ = TODAY（赤）
+      background: _bg(Alignment.centerLeft, AppTheme.todayAccent, Icons.wb_sunny_rounded, 'TODAY'),
       // 左スワイプ = LATER（青）
-      secondaryBackground: _bg(Alignment.centerRight, AppTheme.laterAccent, Icons.nightlight, 'LATER', reverse: true),
+      secondaryBackground: _bg(Alignment.centerRight, AppTheme.laterAccent, Icons.nightlight_round, 'LATER', reverse: true),
       confirmDismiss: (dir) async {
         final target = dir == DismissDirection.startToEnd ? TaskStatus.today : TaskStatus.later;
         final ok = app.move(task, target);
@@ -69,7 +65,7 @@ class BoxScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(Limits.fullMessage(target))));
         }
-        return ok; // 成功時のみカードを消す（状態が変わって BOX から外れる）
+        return ok;
       },
       child: TaskCard(
         task: task,
@@ -77,9 +73,9 @@ class BoxScreen extends StatelessWidget {
         onToggle: () => app.complete(task),
         onTapBody: () => EditTaskSheet.present(context, task),
         menu: [
-          TaskMenuAction('編集', Icons.edit, () => EditTaskSheet.present(context, task)),
-          TaskMenuAction('ジャンル設定', Icons.tag, () => GenrePickerSheet.present(context, task)),
-          TaskMenuAction('削除', Icons.delete, () => app.deleteTask(task), destructive: true),
+          TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
+          TaskMenuAction('ジャンル設定', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
+          TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
         ],
       ),
     );
@@ -87,35 +83,25 @@ class BoxScreen extends StatelessWidget {
 
   Widget _bg(Alignment align, Color color, IconData icon, String label, {bool reverse = false}) {
     final children = [
-      Icon(icon, color: Colors.white),
-      const SizedBox(width: 8),
-      Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+      Icon(icon, color: Colors.white, size: 26),
+      const SizedBox(width: 10),
+      Text(label,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1)),
     ];
     return Container(
       alignment: align,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(AppTheme.cardRadius)),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: reverse ? Alignment.centerLeft : Alignment.centerRight,
+          end: reverse ? Alignment.centerRight : Alignment.centerLeft,
+          colors: [color, color.withOpacity(0.82)],
+        ),
+        borderRadius: AppTheme.radiusCard,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: reverse ? children.reversed.toList() : children,
-      ),
-    );
-  }
-
-  Widget _empty() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_outlined, size: 40, color: AppTheme.sub),
-            SizedBox(height: 10),
-            Text('BOXは空です。', style: TextStyle(fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text('＋ で、やることを入れよう。', style: TextStyle(fontSize: 12, color: AppTheme.sub)),
-          ],
-        ),
       ),
     );
   }
@@ -129,14 +115,15 @@ class _SwipeHint extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(children: const [
-          Icon(Icons.arrow_back, size: 14, color: AppTheme.laterAccent),
-          SizedBox(width: 4),
-          Text('LATER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.laterAccent)),
+          Icon(Icons.west_rounded, size: 15, color: AppTheme.laterAccent),
+          SizedBox(width: 5),
+          Text('LATER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.laterAccent)),
         ]),
+        const Text('スワイプで仕分け', style: TextStyle(fontSize: 11.5, color: AppTheme.sub, fontWeight: FontWeight.w600)),
         Row(children: const [
-          Text('TODAY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.todayAccent)),
-          SizedBox(width: 4),
-          Icon(Icons.arrow_forward, size: 14, color: AppTheme.todayAccent),
+          Text('TODAY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.todayAccent)),
+          SizedBox(width: 5),
+          Icon(Icons.east_rounded, size: 15, color: AppTheme.todayAccent),
         ]),
       ],
     );

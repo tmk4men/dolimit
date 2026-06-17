@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 
 /// タスクに紐づけるジャンルを 1 つ選ぶ（なしも可）
 class GenrePickerSheet extends StatelessWidget {
@@ -27,9 +28,10 @@ class GenrePickerSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SheetHandle(),
           const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('ジャンル', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 8),
+            child: Text('ジャンル', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           ),
           _row(context, app, label: 'ジャンルなし', dot: null, selected: task.genreId == null, onTap: () {
             app.setGenre(task, null);

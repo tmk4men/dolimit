@@ -9,6 +9,7 @@ import '../util/limits.dart';
 import '../util/day_clock.dart';
 import '../widgets/task_card.dart';
 import '../widgets/genre_chip.dart';
+import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 import '../widgets/later_detail_sheet.dart';
@@ -34,27 +35,16 @@ class _LaterScreenState extends State<LaterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: Row(
-            children: [
-              const Text('LATER', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
-              const SizedBox(width: 8),
-              Text('${all.length}/${Limits.later}',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: all.length >= Limits.later ? AppTheme.todayAccent : AppTheme.sub)),
-            ],
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Text('LATERは墓場じゃない。未来のTODAY。',
-              style: TextStyle(fontSize: 12, color: AppTheme.laterAccent)),
+        ScreenHeader(
+          title: 'LATER',
+          count: all.length,
+          capacity: Limits.later,
+          barColor: AppTheme.laterAccent,
+          caption: 'LATERは墓場じゃない。未来のTODAY。',
+          captionColor: AppTheme.laterAccent,
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
           child: GenreFilterBar(
             genres: app.genres,
             selection: _filter,
@@ -63,20 +53,31 @@ class _LaterScreenState extends State<LaterScreen> {
         ),
         Expanded(
           child: tasks.isEmpty
-              ? _empty()
+              ? const EmptyState(
+                  icon: Icons.nightlight_outlined,
+                  title: 'LATERは空です',
+                  subtitle: 'BOXから左スワイプで送れます。')
               : ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 130),
                   children: [
                     for (final g in groups)
                       if (g.tasks.isNotEmpty) ...[
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
-                          child: Text(g.label,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.sub)),
+                          padding: const EdgeInsets.fromLTRB(2, 14, 2, 8),
+                          child: Row(
+                            children: [
+                              Text(g.label,
+                                  style: const TextStyle(
+                                      fontSize: 13, fontWeight: FontWeight.w900, color: AppTheme.ink2, letterSpacing: 0.5)),
+                              const SizedBox(width: 8),
+                              Text('${g.tasks.length}',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.sub)),
+                            ],
+                          ),
                         ),
                         for (final t in g.tasks) ...[
                           _card(context, app, t),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                         ],
                       ],
                   ],
@@ -89,31 +90,32 @@ class _LaterScreenState extends State<LaterScreen> {
   Widget _card(BuildContext context, AppState app, TaskItem task) {
     final due = app.effectiveStartDate(task);
     final parts = <String>[];
-    if (due != null) {
-      parts.add(_fmt(task, due));
-    }
-    if (task.reminderEnabled) parts.add('🔔');
+    if (due != null) parts.add(_fmt(task, due));
+    if (task.reminderEnabled) parts.add('通知あり');
     if (task.pendingMoveToToday) parts.add('移動待ち');
     if (task.pendingAutoMoveToLater) parts.add('追放待ち');
+
+    final flagged = task.pendingMoveToToday || task.pendingAutoMoveToLater;
 
     return TaskCard(
       task: task,
       genre: app.genreById(task.genreId),
-      subtitle: parts.isEmpty ? '開始日なし' : parts.join('  '),
+      subtitle: parts.isEmpty ? '開始日なし' : parts.join('  ·  '),
+      subtitleColor: flagged ? AppTheme.todayAccent : AppTheme.laterAccent,
       onToggle: () => app.complete(task),
       onTapBody: () => LaterDetailSheet.present(context, task),
       menu: [
-        TaskMenuAction('TODAYへ移動', Icons.wb_sunny, () {
+        TaskMenuAction('TODAYへ移動', Icons.wb_sunny_outlined, () {
           if (!app.move(task, TaskStatus.today)) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.today))));
           }
         }),
-        TaskMenuAction('開始日 / 通知を設定', Icons.calendar_today, () => LaterDetailSheet.present(context, task)),
-        TaskMenuAction('ジャンル変更', Icons.tag, () => GenrePickerSheet.present(context, task)),
-        TaskMenuAction('編集', Icons.edit, () => EditTaskSheet.present(context, task)),
-        TaskMenuAction('完了', Icons.check_circle, () => app.complete(task)),
-        TaskMenuAction('削除', Icons.delete, () => app.deleteTask(task), destructive: true),
+        TaskMenuAction('開始日 / 通知を設定', Icons.event_outlined, () => LaterDetailSheet.present(context, task)),
+        TaskMenuAction('ジャンル変更', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
+        TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
+        TaskMenuAction('完了', Icons.check_circle_outline, () => app.complete(task)),
+        TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
       ],
     );
   }
@@ -162,24 +164,6 @@ class _LaterScreenState extends State<LaterScreen> {
       g.tasks.sort(cmp);
     }
     return [today, tomorrow, week, beyond, none];
-  }
-
-  Widget _empty() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.nightlight_outlined, size: 40, color: AppTheme.sub),
-            SizedBox(height: 10),
-            Text('LATERは空です。', style: TextStyle(fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text('BOXから左スワイプで送れます。', style: TextStyle(fontSize: 12, color: AppTheme.sub)),
-          ],
-        ),
-      ),
-    );
   }
 }
 

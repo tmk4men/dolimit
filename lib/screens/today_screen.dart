@@ -9,6 +9,7 @@ import '../util/limits.dart';
 import '../widgets/remaining_time.dart';
 import '../widgets/task_card.dart';
 import '../widgets/genre_chip.dart';
+import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 
@@ -33,28 +34,11 @@ class _TodayScreenState extends State<TodayScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  const Text('TODAY', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
-                  const SizedBox(width: 8),
-                  Text('${all.length}/${Limits.today}',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: all.length >= Limits.today ? AppTheme.todayAccent : AppTheme.sub)),
-                ],
-              ),
-              const Padding(padding: EdgeInsets.only(bottom: 4), child: RemainingTime(fontSize: 16)),
-            ],
-          ),
+        ScreenHeader(
+          title: 'TODAY',
+          count: all.length,
+          capacity: Limits.today,
+          trailing: const RemainingTime(fontSize: 14),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -66,22 +50,29 @@ class _TodayScreenState extends State<TodayScreen> {
         ),
         Expanded(
           child: tasks.isEmpty
-              ? _empty()
+              ? const EmptyState(
+                  icon: Icons.wb_sunny_outlined,
+                  title: 'TODAYは空です',
+                  subtitle: 'BOXから仕分けましょう。')
               : (canReorder
                   ? ReorderableListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 130),
                       itemCount: tasks.length,
+                      proxyDecorator: (child, index, anim) => Material(
+                        color: Colors.transparent,
+                        child: child,
+                      ),
                       onReorder: (o, n) => app.reorderToday(o, n),
                       itemBuilder: (_, i) => Padding(
                         key: ValueKey(tasks[i].id),
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 12),
                         child: _card(context, app, tasks[i]),
                       ),
                     )
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 120),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 130),
                       itemCount: tasks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (_, i) => _card(context, app, tasks[i]),
                     )),
         ),
@@ -99,34 +90,16 @@ class _TodayScreenState extends State<TodayScreen> {
       onToggle: () => app.complete(task),
       onTapBody: () => EditTaskSheet.present(context, task),
       menu: [
-        TaskMenuAction('編集', Icons.edit, () => EditTaskSheet.present(context, task)),
-        TaskMenuAction('ジャンル変更', Icons.tag, () => GenrePickerSheet.present(context, task)),
-        TaskMenuAction('LATERへ移動', Icons.nightlight, () {
+        TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
+        TaskMenuAction('ジャンル変更', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
+        TaskMenuAction('LATERへ移動', Icons.nightlight_outlined, () {
           if (!app.move(task, TaskStatus.later)) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.later))));
           }
         }),
-        TaskMenuAction('削除', Icons.delete, () => app.deleteTask(task), destructive: true),
+        TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
       ],
-    );
-  }
-
-  Widget _empty() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.wb_sunny_outlined, size: 40, color: AppTheme.sub),
-            SizedBox(height: 10),
-            Text('TODAYは空です。', style: TextStyle(fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text('BOXから仕分けましょう。', style: TextStyle(fontSize: 12, color: AppTheme.sub)),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
+import '../widgets/ui_kit.dart';
 import 'home_screen.dart';
 import 'box_screen.dart';
 import 'today_screen.dart';
@@ -31,13 +32,9 @@ class _RootTabState extends State<RootTab> {
     ];
 
     return Scaffold(
-      body: SafeArea(child: IndexedStack(index: _index, children: screens)),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.ink,
-        foregroundColor: Colors.white,
-        shape: const CircleBorder(),
-        onPressed: () => AddTaskSheet.present(context, onSort: () => _goToTab(1)),
-        child: const Icon(Icons.add, size: 28),
+      body: SafeArea(bottom: false, child: IndexedStack(index: _index, children: screens)),
+      floatingActionButton: _Fab(
+        onTap: () => AddTaskSheet.present(context, onSort: () => _goToTab(1)),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
@@ -51,6 +48,27 @@ class _RootTabState extends State<RootTab> {
           NavigationDestination(icon: Icon(Icons.nightlight_outlined), selectedIcon: Icon(Icons.nightlight), label: 'LATER'),
           NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
         ],
+      ),
+    );
+  }
+}
+
+/// 大きめで押し心地のある ＋ ボタン
+class _Fab extends StatelessWidget {
+  final VoidCallback onTap;
+  const _Fab({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6, right: 4),
+      child: PressableCard(
+        onTap: onTap,
+        color: AppTheme.ink,
+        shadow: AppTheme.floatShadow,
+        radius: const BorderRadius.all(Radius.circular(20)),
+        padding: const EdgeInsets.all(17),
+        child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
       ),
     );
   }

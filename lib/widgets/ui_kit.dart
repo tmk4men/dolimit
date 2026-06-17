@@ -1,0 +1,258 @@
+import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
+
+/// 押すと軽く沈むカード（少しゲーム感のある操作感）
+class PressableCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final EdgeInsets padding;
+  final Color color;
+  final List<BoxShadow> shadow;
+  final BorderRadius radius;
+  const PressableCard({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.padding = const EdgeInsets.all(16),
+    this.color = AppTheme.card,
+    this.shadow = AppTheme.cardShadow,
+    this.radius = AppTheme.radiusCard,
+  });
+
+  @override
+  State<PressableCard> createState() => _PressableCardState();
+}
+
+class _PressableCardState extends State<PressableCard> {
+  bool _down = false;
+
+  void _set(bool v) {
+    if (widget.onTap == null) return;
+    setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => _set(true),
+      onTapUp: (_) => _set(false),
+      onTapCancel: () => _set(false),
+      child: AnimatedScale(
+        scale: _down ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 110),
+          padding: widget.padding,
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: widget.radius,
+            boxShadow: _down ? AppTheme.cardShadow.take(1).toList() : widget.shadow,
+          ),
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
+/// 残量バー（count/cap）。満杯に近づくと赤。
+class CapacityBar extends StatelessWidget {
+  final int count;
+  final int capacity;
+  final Color color;
+  final double height;
+  const CapacityBar({
+    super.key,
+    required this.count,
+    required this.capacity,
+    required this.color,
+    this.height = 6,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = capacity == 0 ? 0.0 : (count / capacity).clamp(0.0, 1.0);
+    final full = count >= capacity;
+    final fillColor = full ? AppTheme.todayAccent : color;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(height),
+      child: Stack(
+        children: [
+          Container(height: height, color: AppTheme.line),
+          LayoutBuilder(
+            builder: (_, c) => AnimatedContainer(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOutCubic,
+              height: height,
+              width: c.maxWidth * ratio,
+              decoration: BoxDecoration(
+                color: fillColor,
+                borderRadius: BorderRadius.circular(height),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// BOX / TODAY / LATER 共通の大見出しヘッダー
+class ScreenHeader extends StatelessWidget {
+  final String title;
+  final int count;
+  final int capacity;
+  final Color barColor;
+  final String? caption; // 下の短い一言
+  final Color captionColor;
+  final Widget? trailing; // 残り時間など
+  const ScreenHeader({
+    super.key,
+    required this.title,
+    required this.count,
+    required this.capacity,
+    this.barColor = AppTheme.ink2,
+    this.caption,
+    this.captionColor = AppTheme.sub,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final full = count >= capacity;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: AppTheme.ink)),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: full ? AppTheme.todaySoft : AppTheme.boxSoft,
+                  borderRadius: AppTheme.radiusPill,
+                ),
+                child: Text('$count/$capacity',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: full ? AppTheme.todayAccent : AppTheme.ink2,
+                        fontFeatures: kTabular)),
+              ),
+              const Spacer(),
+              if (trailing != null) trailing!,
+            ],
+          ),
+          const SizedBox(height: 10),
+          CapacityBar(count: count, capacity: capacity, color: barColor),
+          if (caption != null) ...[
+            const SizedBox(height: 8),
+            Text(caption!, style: TextStyle(fontSize: 12.5, color: captionColor)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 小さなラベルピル
+class AccentPill extends StatelessWidget {
+  final String text;
+  final Color color;
+  final Color background;
+  final IconData? icon;
+  const AccentPill(this.text, {super.key, required this.color, required this.background, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: icon == null ? 10 : 8, vertical: 4),
+      decoration: BoxDecoration(color: background, borderRadius: AppTheme.radiusPill),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[Icon(icon, size: 13, color: color), const SizedBox(width: 4)],
+          Text(text, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color)),
+        ],
+      ),
+    );
+  }
+}
+
+/// ボトムシート上部のつまみ
+class SheetHandle extends StatelessWidget {
+  const SheetHandle({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        margin: const EdgeInsets.only(top: 10, bottom: 6),
+        decoration: BoxDecoration(color: AppTheme.line, borderRadius: BorderRadius.circular(2)),
+      ),
+    );
+  }
+}
+
+/// セクション見出し（Settings など）
+class SectionLabel extends StatelessWidget {
+  final String text;
+  const SectionLabel(this.text, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 22, 4, 8),
+      child: Text(text.toUpperCase(),
+          style: const TextStyle(
+              fontSize: 11.5, fontWeight: FontWeight.w800, color: AppTheme.sub, letterSpacing: 1.2)),
+    );
+  }
+}
+
+/// 空状態（線画アイコン＋短文）
+class EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  const EmptyState({super.key, required this.icon, required this.title, this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: const BoxDecoration(color: AppTheme.boxSoft, shape: BoxShape.circle),
+              child: Icon(icon, size: 34, color: AppTheme.sub),
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.ink)),
+            if (subtitle != null) ...[
+              const SizedBox(height: 6),
+              Text(subtitle!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, color: AppTheme.sub)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

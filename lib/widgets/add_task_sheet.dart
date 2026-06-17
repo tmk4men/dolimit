@@ -4,6 +4,7 @@ import '../state/app_state.dart';
 import '../models/enums.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import 'ui_kit.dart';
 
 /// ＋ から開くタスク追加シート。入力はタスク名のみ。必ず BOX へ。
 /// 音声: A案（端末の音声入力キーボードを使えるテキストフィールドにフォーカス）。
@@ -93,12 +94,14 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
-      padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 20),
+      padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 6),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('BOXに追加', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SheetHandle(),
+          const SizedBox(height: 6),
+          const Text('BOXに追加', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -108,41 +111,55 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   focusNode: _focus,
                   autofocus: true,
                   textInputAction: TextInputAction.done,
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                   onSubmitted: (_) => _add(),
                   decoration: InputDecoration(
                     hintText: 'やることを入力',
                     filled: true,
-                    fillColor: const Color(0xFFF2F2F4),
+                    fillColor: AppTheme.fill,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: '音声で入力',
-                onPressed: () {
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
                   // A案: 端末の音声入力キーボードへフォーカス（source=voice 扱い）
                   // TODO: 音声認識(speech_to_text)によるフル実装
                   setState(() => _usedVoice = true);
                   _focus.requestFocus();
                 },
-                icon: const Icon(Icons.mic, color: AppTheme.sub),
+                child: Container(
+                  width: 52, height: 52,
+                  decoration: BoxDecoration(
+                    color: _usedVoice ? AppTheme.ink : AppTheme.fill,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(Icons.mic_none_rounded,
+                      color: _usedVoice ? Colors.white : AppTheme.ink2),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           const Text('BOXに入れる。左右で仕分ける。TODAYで決着。',
-              style: TextStyle(fontSize: 12, color: AppTheme.sub)),
-          const SizedBox(height: 16),
+              style: TextStyle(fontSize: 12.5, color: AppTheme.sub)),
+          const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.ink,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
               onPressed: _add,
-              child: const Text('追加'),
+              child: const Text('追加', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
         ],
       ),
     );

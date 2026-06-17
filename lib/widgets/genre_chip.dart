@@ -10,13 +10,21 @@ class GenreChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = genre;
     if (g == null) return const SizedBox.shrink();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: g.color, shape: BoxShape.circle)),
-        const SizedBox(width: 5),
-        Text(g.name, style: const TextStyle(fontSize: 12, color: AppTheme.sub, fontWeight: FontWeight.w500)),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: g.color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 7, height: 7, decoration: BoxDecoration(color: g.color, shape: BoxShape.circle)),
+          const SizedBox(width: 5),
+          Text(g.name,
+              style: TextStyle(fontSize: 11.5, color: g.color, fontWeight: FontWeight.w700)),
+        ],
+      ),
     );
   }
 }
@@ -85,25 +93,26 @@ class GenreFilterBar extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
         onTap: () => onSelect(value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: active ? AppTheme.ink : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(999),
             border: Border.all(color: active ? AppTheme.ink : AppTheme.line),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (dot != null) ...[
-                Container(width: 7, height: 7, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
-                const SizedBox(width: 5),
+                Container(width: 8, height: 8, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+                const SizedBox(width: 6),
               ],
               Text(label,
                   style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: active ? Colors.white : AppTheme.ink)),
+                      fontWeight: FontWeight.w700,
+                      color: active ? Colors.white : AppTheme.ink2)),
             ],
           ),
         ),

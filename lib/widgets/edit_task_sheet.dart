@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 
 /// タスク名（とメモ）の編集
 class EditTaskSheet extends StatefulWidget {
@@ -44,7 +45,9 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('編集', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SheetHandle(),
+          const SizedBox(height: 6),
+          const Text('編集', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 14),
           TextField(
             controller: _title,
