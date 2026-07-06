@@ -3,7 +3,7 @@ import '../models/app_settings.dart';
 // Web ビルドではネイティブプラグイン（dart:io 依存）をコンパイル対象から除外する。
 // dart.library.io は Android/iOS/デスクトップで true、Web で false。
 import 'notification_factory_stub.dart'
-    if (dart.library.io) 'notification_factory_native.dart' as factory;
+    if (dart.library.io) 'notification_factory_native.dart' as impl;
 
 /// 通知・バッジの抽象。広告は一切出さない。
 ///
@@ -26,7 +26,7 @@ abstract class NotificationService {
   Future<void> applyBadge(int todayUnfinished, {required bool enabled});
 
   /// 環境に応じた実装を返す（Web=Stub / ネイティブ=Native）。
-  static NotificationService create() => factory.createNotificationService();
+  static NotificationService create() => impl.createNotificationService();
 }
 
 /// Web / 未実装環境向けの no-op 実装

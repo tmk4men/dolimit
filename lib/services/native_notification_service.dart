@@ -119,6 +119,8 @@ class NativeNotificationService implements NotificationService {
       _nextInstanceOf(hour, minute),
       _details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       // 毎日同時刻に繰り返す
       matchDateTimeComponents: DateTimeComponents.time,
     );
@@ -151,6 +153,8 @@ class NativeNotificationService implements NotificationService {
       when,
       _details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
