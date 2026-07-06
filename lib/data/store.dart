@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/task.dart';
@@ -20,23 +21,37 @@ class Store {
     return Store(p);
   }
 
-  List<TaskItem> loadTasks() {
-    final s = prefs.getString(_kTasks);
+  /// 保存データが壊れていても起動不能にせず、読めた分だけ返す。
+  /// リストや個々の要素が不正な場合はスキップする。
+  List<T> _loadList<T>(String key, T Function(Map<String, dynamic>) fromJson) {
+    final s = prefs.getString(key);
     if (s == null) return [];
-    final list = jsonDecode(s) as List;
-    return list.map((e) => TaskItem.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final decoded = jsonDecode(s);
+      if (decoded is! List) return [];
+      final out = <T>[];
+      for (final e in decoded) {
+        if (e is! Map<String, dynamic>) continue;
+        try {
+          out.add(fromJson(e));
+        } catch (err) {
+          debugPrint('Store: skipped a corrupt item in $key: $err');
+        }
+      }
+      return out;
+    } catch (err) {
+      debugPrint('Store: failed to parse $key, ignoring: $err');
+      return [];
+    }
   }
+
+  List<TaskItem> loadTasks() => _loadList(_kTasks, TaskItem.fromJson);
 
   Future<void> saveTasks(List<TaskItem> tasks) async {
     await prefs.setString(_kTasks, jsonEncode(tasks.map((t) => t.toJson()).toList()));
   }
 
-  List<Genre> loadGenres() {
-    final s = prefs.getString(_kGenres);
-    if (s == null) return [];
-    final list = jsonDecode(s) as List;
-    return list.map((e) => Genre.fromJson(e as Map<String, dynamic>)).toList();
-  }
+  List<Genre> loadGenres() => _loadList(_kGenres, Genre.fromJson);
 
   Future<void> saveGenres(List<Genre> genres) async {
     await prefs.setString(_kGenres, jsonEncode(genres.map((g) => g.toJson()).toList()));
@@ -45,7 +60,14 @@ class Store {
   AppSettings loadSettings() {
     final s = prefs.getString(_kSettings);
     if (s == null) return AppSettings();
-    return AppSettings.fromJson(jsonDecode(s) as Map<String, dynamic>);
+    try {
+      final decoded = jsonDecode(s);
+      if (decoded is! Map<String, dynamic>) return AppSettings();
+      return AppSettings.fromJson(decoded);
+    } catch (err) {
+      debugPrint('Store: failed to parse settings, using defaults: $err');
+      return AppSettings();
+    }
   }
 
   Future<void> saveSettings(AppSettings settings) async {

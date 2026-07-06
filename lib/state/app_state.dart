@@ -16,6 +16,9 @@ const _uuid = Uuid();
 
 /// アプリ全体の状態とロジック。provider で配布する。
 class AppState extends ChangeNotifier {
+  /// バックアップJSONのスキーマ版。互換性チェックに使う。
+  static const int backupVersion = 1;
+
   final Store store;
   final NotificationService notifier;
 
@@ -103,6 +106,7 @@ class AppState extends ChangeNotifier {
     if (target == TaskStatus.today) {
       task.movedToTodayAt = DateTime.now();
       task.lastTodayDate = DayClock.startOfDay();
+      task.consecutiveUnfinishedDays = 0; // TODAY に入り直したら未完了日数はリセット
       task.todayAddedCount += 1;
       final maxOrder = tasksIn(TaskStatus.today)
           .fold<int>(0, (m, t) => t.todayOrder > m ? t.todayOrder : m);
@@ -224,9 +228,21 @@ class AppState extends ChangeNotifier {
   }
 
   void _rollOverDay(DateTime now) {
+    final today = DayClock.startOfDay(now);
     for (final t in _tasks.where((t) => t.status == TaskStatus.today)) {
-      if (!DayClock.isSameDay(t.lastTodayDate, now)) {
-        t.lastTodayDate = DayClock.startOfDay(now);
+      final last = t.lastTodayDate;
+      if (last == null) {
+        t.lastTodayDate = today;
+        continue;
+      }
+      final days = DayClock.daysBetween(last, now);
+      // 日付が変わった＝その日 TODAY で完了できなかった。
+      // 経過日数ぶん「連続未完了日数」を加算し、当日ぶんの状態をリセット。
+      // 1日1回だけ増える（同日に何度 runMaintenance されても days<1 で不変）。
+      if (days >= 1) {
+        t.consecutiveUnfinishedDays += days;
+        t.snoozeCountToday = 0;
+        t.lastTodayDate = today;
       }
     }
   }
@@ -267,7 +283,8 @@ class AppState extends ChangeNotifier {
   // ===== 今日の精算 =====
 
   void settleKeepInToday(TaskItem task) {
-    task.consecutiveUnfinishedDays += 1;
+    // 未完了日数の加算は日跨ぎ (_rollOverDay) が一元管理する。
+    // ここで足すと精算＋翌朝ロールオーバーで二重加算になるため足さない。
     task.snoozeCountToday = 0;
     task.lastSweptAt = DateTime.now();
     task.updatedAt = DateTime.now();
@@ -348,7 +365,7 @@ class AppState extends ChangeNotifier {
 
   String exportJson() {
     final map = {
-      'version': 1,
+      'version': backupVersion,
       'exportedAt': DateTime.now().toIso8601String(),
       'tasks': _tasks.map((t) => t.toJson()).toList(),
       'genres': _genres.map((g) => g.toJson()).toList(),
@@ -360,12 +377,42 @@ class AppState extends ChangeNotifier {
   /// 戻り値: null=成功 / メッセージ=失敗
   String? importJson(String text) {
     try {
-      final map = jsonDecode(text) as Map<String, dynamic>;
-      _tasks = (map['tasks'] as List).map((e) => TaskItem.fromJson(e as Map<String, dynamic>)).toList();
-      _genres = (map['genres'] as List).map((e) => Genre.fromJson(e as Map<String, dynamic>)).toList();
-      if (map['settings'] != null) {
-        settings = AppSettings.fromJson(map['settings'] as Map<String, dynamic>);
+      final decoded = jsonDecode(text);
+      if (decoded is! Map<String, dynamic>) {
+        return 'バックアップの形式が正しくありません。';
       }
+      final map = decoded;
+
+      final version = (map['version'] ?? 1);
+      if (version is int && version > backupVersion) {
+        return 'より新しいバージョンのバックアップです。アプリを更新してください。';
+      }
+      if (map['tasks'] is! List || map['genres'] is! List) {
+        return 'バックアップの形式が正しくありません。';
+      }
+
+      // まずローカル変数へ完全にパースする。途中で失敗しても
+      // 既存データ (_tasks/_genres/settings) は壊さない。
+      final tasks = (map['tasks'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(TaskItem.fromJson)
+          .toList();
+      var genres = (map['genres'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(Genre.fromJson)
+          .toList();
+      // ジャンル上限を超える分は切り捨て（上限厳守＝プロダクト中心思想）。
+      if (genres.length > Limits.genre) {
+        genres = genres.sublist(0, Limits.genre);
+      }
+      final newSettings = map['settings'] != null
+          ? AppSettings.fromJson(map['settings'] as Map<String, dynamic>)
+          : settings;
+
+      // 全て成功したのでまとめて反映。
+      _tasks = tasks;
+      _genres = genres;
+      settings = newSettings;
       _persistTasks();
       _persistGenres();
       store.saveSettings(settings);
