@@ -28,10 +28,10 @@ class HomeScreen extends StatelessWidget {
         // ヘッダー：日付ラベル + 残り時間
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('今日',
+          children: const [
+            Text('今日',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.sub, letterSpacing: 1)),
-            const RemainingTime(fontSize: 16),
+            RemainingTime(fontSize: 16),
           ],
         ),
         const SizedBox(height: 18),

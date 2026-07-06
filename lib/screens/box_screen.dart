@@ -113,14 +113,14 @@ class _SwipeHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(children: const [
+      children: const [
+        Row(children: [
           Icon(Icons.west_rounded, size: 15, color: AppTheme.laterAccent),
           SizedBox(width: 5),
           Text('LATER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.laterAccent)),
         ]),
-        const Text('スワイプで仕分け', style: TextStyle(fontSize: 11.5, color: AppTheme.sub, fontWeight: FontWeight.w600)),
-        Row(children: const [
+        Text('スワイプで仕分け', style: TextStyle(fontSize: 11.5, color: AppTheme.sub, fontWeight: FontWeight.w600)),
+        Row(children: [
           Text('TODAY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.todayAccent)),
           SizedBox(width: 5),
           Icon(Icons.east_rounded, size: 15, color: AppTheme.todayAccent),
