@@ -15,10 +15,14 @@ dependencies:
   uuid: ^4.5.1
   intl: ^0.19.0
 
-  # --- ネイティブ専用（Android/iOS リリース時に有効化）。Web デモではスタブ実装を使用 ---
-  # flutter_local_notifications: ^17.2.3
+  # --- ネイティブ通知・バッジ（Android/iOS）。Web ビルドでは条件付きインポートで除外 ---
+  flutter_local_notifications: ^17.2.3
+  app_badge_plus: ^1.2.0      # flutter_app_badger は Dart3 非対応のため差し替え
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
+
+  # --- 未着手（有効化時にコメント解除） ---
   # home_widget: ^0.6.0
-  # flutter_app_badger: ^1.5.0
 
 dev_dependencies:
   flutter_test:

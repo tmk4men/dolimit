@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -29,14 +31,22 @@ class _Gate extends StatefulWidget {
 }
 
 class _GateState extends State<_Gate> with WidgetsBindingObserver {
+  Timer? _tick;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // フォアグラウンド常駐中も、時刻をまたぐ自動移動/自動追放を反映させる。
+    // resumed だけだと開きっぱなしの間はメンテナンスが走らないため。
+    _tick = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) context.read<AppState>().runMaintenance();
+    });
   }
 
   @override
   void dispose() {
+    _tick?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
