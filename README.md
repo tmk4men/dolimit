@@ -57,17 +57,17 @@ flutter run -d chrome      # Web で確認
 1. `flutter create . --platforms=android` でネイティブプロジェクト生成。
 2. Android Studio で `android/` を開く。
 3. 署名鍵を作成し `android/key.properties` と `build.gradle` に設定。
-4. ネイティブ機能を有効化（`pubspec.yaml` のコメントを解除）:
-   - 通知: `flutter_local_notifications`
-   - ホーム画面ウィジェット: `home_widget`（Android は Glance / XML、iOS は WidgetKit）
-   - バッジ: `flutter_app_badger`
-   - 実装は `lib/services/notification_service.dart` の `NativeNotificationService`（TODO）に追加。
-5. `flutter build appbundle --release` → Play Console へ。
+4. 通知・バッジは実装済み（`lib/services/native_notification_service.dart`、`flutter_local_notifications` + `app_badge_plus`）。Web では条件付きインポートでスタブに切り替わる。
+   - **Android**: `AndroidManifest.xml` に `POST_NOTIFICATIONS`（Android 13+）を追加。再起動後も定時リマインドを保つなら `RECEIVE_BOOT_COMPLETED` + 起動時 reschedule も検討（現状は inexact スケジュールで `SCHEDULE_EXACT_ALARM` は不要）。
+   - **iOS**: 通知・バッジ権限は起動時に要求（`main.dart`）。
+   - ホーム画面ウィジェット（`home_widget`）は未実装（`pubspec.yaml` のコメント参照）。
+5. `flutter build appbundle --release`（Android）/ `flutter build ipa`（iOS）→ 各ストアへ。
 
 ## TODO / プレースホルダー
 
 - 広告 / Pro 課金（ボタンのみ「今後実装予定」）
-- ホーム画面ウィジェット（小/中）と通知のネイティブ実装
+- ホーム画面ウィジェット（小/中）のネイティブ実装（通知・バッジは実装済み）
+- 通知タップ時のディープリンク、再起動後の再スケジュール
 - 音声認識のフル実装（現状は端末の音声入力キーボード導線）
 
 `_ios_swiftui_reference/` は最初に検討した iOS ネイティブ(SwiftUI)版の参考実装（不使用）。
