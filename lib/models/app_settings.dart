@@ -16,6 +16,7 @@ class AppSettings {
   bool notificationsEnabled;
   bool badgeEnabled;
   bool onboardingDone;
+  bool isPro; // Pro 購入済みなら true（上限が拡張される）
   TimeOfDayPref morning;
   TimeOfDayPref midday;
   TimeOfDayPref settlement;
@@ -25,6 +26,7 @@ class AppSettings {
     this.notificationsEnabled = true,
     this.badgeEnabled = true,
     this.onboardingDone = false,
+    this.isPro = false,
     this.morning = const TimeOfDayPref(8, 0),
     this.midday = const TimeOfDayPref(15, 0),
     this.settlement = const TimeOfDayPref(22, 30),
@@ -35,6 +37,7 @@ class AppSettings {
         'notificationsEnabled': notificationsEnabled,
         'badgeEnabled': badgeEnabled,
         'onboardingDone': onboardingDone,
+        'isPro': isPro,
         'morning': morning.toJson(),
         'midday': midday.toJson(),
         'settlement': settlement.toJson(),
@@ -45,6 +48,7 @@ class AppSettings {
         notificationsEnabled: (j['notificationsEnabled'] ?? true) as bool,
         badgeEnabled: (j['badgeEnabled'] ?? true) as bool,
         onboardingDone: (j['onboardingDone'] ?? false) as bool,
+        isPro: (j['isPro'] ?? false) as bool,
         morning: j['morning'] != null
             ? TimeOfDayPref.fromJson(j['morning'] as Map<String, dynamic>)
             : const TimeOfDayPref(8, 0),

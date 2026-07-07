@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'data/store.dart';
 import 'services/notification_service.dart';
+import 'services/widget_service.dart';
 import 'state/app_state.dart';
 import 'app.dart';
 
@@ -11,7 +12,9 @@ Future<void> main() async {
   final store = await Store.open();
   final notifier = NotificationService.create();
   await notifier.init();
-  final appState = AppState(store: store, notifier: notifier);
+  final widgets = WidgetService.create();
+  await widgets.init();
+  final appState = AppState(store: store, notifier: notifier, widgets: widgets);
   await appState.load();
 
   // 通知が既定ONなのに権限未取得で鳴らない問題を防ぐため、起動時に権限を要求する。

@@ -37,7 +37,7 @@ class _TodayScreenState extends State<TodayScreen> {
         ScreenHeader(
           title: 'TODAY',
           count: all.length,
-          capacity: Limits.today,
+          capacity: app.capacityFor(TaskStatus.today)!,
           trailing: const RemainingTime(fontSize: 14),
         ),
         Padding(

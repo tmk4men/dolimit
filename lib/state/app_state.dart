@@ -8,6 +8,7 @@ import '../models/enums.dart';
 import '../models/app_settings.dart';
 import '../data/store.dart';
 import '../services/notification_service.dart';
+import '../services/widget_service.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
 import '../util/day_clock.dart';
@@ -22,11 +23,14 @@ class AppState extends ChangeNotifier {
   final Store store;
   final NotificationService notifier;
 
+  /// ホーム画面ウィジェットへのデータ供給。テストなどでは省略可（null=無効）。
+  final WidgetService? widgets;
+
   List<TaskItem> _tasks = [];
   List<Genre> _genres = [];
   late AppSettings settings;
 
-  AppState({required this.store, required this.notifier});
+  AppState({required this.store, required this.notifier, this.widgets});
 
   // ===== 起動 =====
 
@@ -72,9 +76,29 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
+  bool get isPro => settings.isPro;
+
+  /// Pro を加味した実効上限（BOX/TODAY/LATER）。上限なしの状態は null。
+  int? capacityFor(TaskStatus status) {
+    final base = Limits.capacityFor(status);
+    if (base == null) return null;
+    return base + (isPro ? Limits.proBonusFor(status) : 0);
+  }
+
+  /// Pro を加味したジャンル上限。
+  int get genreCap => Limits.genre + (isPro ? Limits.proBonusGenre : 0);
+
   bool isFull(TaskStatus status) {
-    final cap = Limits.capacityFor(status);
+    final cap = capacityFor(status);
     return cap != null && count(status) >= cap;
+  }
+
+  /// Pro 状態を切り替えて永続化する（購入成功・復元・開発用解除から呼ぶ）。
+  void setPro(bool value) {
+    if (settings.isPro == value) return;
+    settings.isPro = value;
+    store.saveSettings(settings);
+    notifyListeners();
   }
 
   // ===== 追加 =====
@@ -93,7 +117,7 @@ class AppState extends ChangeNotifier {
 
   /// 移動を試みる。満杯なら false。
   bool move(TaskItem task, TaskStatus target) {
-    final cap = Limits.capacityFor(target);
+    final cap = capacityFor(target);
     if (cap != null && count(target) >= cap) return false;
     _apply(task, target);
     _persistAndRefresh();
@@ -251,7 +275,7 @@ class AppState extends ChangeNotifier {
     for (final t in _tasks.where((t) => t.status == TaskStatus.later && t.autoMoveToToday).toList()) {
       final due = effectiveStartDate(t);
       if (due == null || due.isAfter(now)) continue;
-      if (count(TaskStatus.today) >= Limits.today) {
+      if (count(TaskStatus.today) >= capacityFor(TaskStatus.today)!) {
         if (!t.pendingMoveToToday) {
           t.pendingMoveToToday = true;
           notifier.notifyTodayFull(t.title);
@@ -267,7 +291,7 @@ class AppState extends ChangeNotifier {
 
   void _autoBanishStaleToday(DateTime now) {
     for (final t in _tasks.where((t) => t.status == TaskStatus.today && t.consecutiveUnfinishedDays >= 3).toList()) {
-      if (count(TaskStatus.later) >= Limits.later) {
+      if (count(TaskStatus.later) >= capacityFor(TaskStatus.later)!) {
         t.pendingAutoMoveToLater = true; // 追放待ち
         continue;
       }
@@ -292,7 +316,7 @@ class AppState extends ChangeNotifier {
   }
 
   void settleMoveToLater(TaskItem task) {
-    if (count(TaskStatus.later) >= Limits.later) {
+    if (count(TaskStatus.later) >= capacityFor(TaskStatus.later)!) {
       task.pendingAutoMoveToLater = true;
     } else {
       task.status = TaskStatus.later;
@@ -310,7 +334,7 @@ class AppState extends ChangeNotifier {
   String? addGenre(String name, int colorValue) {
     final t = name.trim();
     if (t.isEmpty) return '名前を入力してください';
-    if (_genres.length >= Limits.genre) return 'ジャンルは最大${Limits.genre}個までです';
+    if (_genres.length >= genreCap) return 'ジャンルは最大$genreCap個までです';
     if (_genres.any((g) => g.name == t)) return '同じ名前があります';
     final now = DateTime.now();
     _genres.add(Genre(id: _uuid.v4(), name: t, colorValue: colorValue, createdAt: now, updatedAt: now));
@@ -401,13 +425,15 @@ class AppState extends ChangeNotifier {
           .whereType<Map<String, dynamic>>()
           .map(Genre.fromJson)
           .toList();
-      // ジャンル上限を超える分は切り捨て（上限厳守＝プロダクト中心思想）。
-      if (genres.length > Limits.genre) {
-        genres = genres.sublist(0, Limits.genre);
-      }
       final newSettings = map['settings'] != null
           ? AppSettings.fromJson(map['settings'] as Map<String, dynamic>)
           : settings;
+      // ジャンル上限を超える分は切り捨て（上限厳守）。取り込む設定の Pro 状態で判定。
+      final importGenreCap =
+          Limits.genre + (newSettings.isPro ? Limits.proBonusGenre : 0);
+      if (genres.length > importGenreCap) {
+        genres = genres.sublist(0, importGenreCap);
+      }
 
       // 全て成功したのでまとめて反映。
       _tasks = tasks;
@@ -446,5 +472,13 @@ class AppState extends ChangeNotifier {
 
   void _refreshBadge() {
     notifier.applyBadge(todayUnfinished, enabled: settings.badgeEnabled);
+    _refreshWidget();
+  }
+
+  void _refreshWidget() {
+    final w = widgets;
+    if (w == null) return;
+    final titles = tasksIn(TaskStatus.today).take(3).map((t) => t.title).toList();
+    w.update(todayCount: todayUnfinished, topTitles: titles);
   }
 }

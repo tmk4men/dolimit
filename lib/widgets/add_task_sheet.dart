@@ -4,6 +4,7 @@ import '../state/app_state.dart';
 import '../models/enums.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import 'pro_sheet.dart';
 import 'ui_kit.dart';
 
 /// ＋ から開くタスク追加シート。入力はタスク名のみ。必ず BOX へ。
@@ -45,8 +46,8 @@ class AddTaskSheet extends StatefulWidget {
             child: const Text('広告で一時的に+5'), // TODO: 広告SDK
           ),
           TextButton(
-            onPressed: () => _comingSoon(ctx),
-            child: const Text('Proで枠を増やす'), // TODO: 課金
+            onPressed: () { Navigator.pop(ctx); ProSheet.present(context); },
+            child: const Text('Proで枠を増やす'),
           ),
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
         ],

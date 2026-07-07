@@ -38,7 +38,7 @@ class _LaterScreenState extends State<LaterScreen> {
         ScreenHeader(
           title: 'LATER',
           count: all.length,
-          capacity: Limits.later,
+          capacity: app.capacityFor(TaskStatus.later)!,
           barColor: AppTheme.laterAccent,
           caption: 'LATERは墓場じゃない。未来のTODAY。',
           captionColor: AppTheme.laterAccent,

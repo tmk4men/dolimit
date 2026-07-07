@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
         const SizedBox(height: 18),
 
         // TODAY 大カウンター
-        _TodayHero(count: app.todayUnfinished),
+        _TodayHero(count: app.todayUnfinished, cap: app.capacityFor(TaskStatus.today)!),
 
         const SizedBox(height: 24),
 
@@ -78,9 +78,9 @@ class HomeScreen extends StatelessWidget {
         // 箱の件数
         Row(
           children: [
-            Expanded(child: _StatTile(label: 'BOX', count: app.count(TaskStatus.box), cap: Limits.box, accent: AppTheme.boxAccent, onTap: () => onGoToTab(1))),
+            Expanded(child: _StatTile(label: 'BOX', count: app.count(TaskStatus.box), cap: app.capacityFor(TaskStatus.box)!, accent: AppTheme.boxAccent, onTap: () => onGoToTab(1))),
             const SizedBox(width: 14),
-            Expanded(child: _StatTile(label: 'LATER', count: app.count(TaskStatus.later), cap: Limits.later, accent: AppTheme.laterAccent, onTap: () => onGoToTab(3))),
+            Expanded(child: _StatTile(label: 'LATER', count: app.count(TaskStatus.later), cap: app.capacityFor(TaskStatus.later)!, accent: AppTheme.laterAccent, onTap: () => onGoToTab(3))),
           ],
         ),
 
@@ -123,7 +123,8 @@ class HomeScreen extends StatelessWidget {
 /// TODAY 大カウンター（ヒーロー）
 class _TodayHero extends StatelessWidget {
   final int count;
-  const _TodayHero({required this.count});
+  final int cap;
+  const _TodayHero({required this.count, required this.cap});
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +152,7 @@ class _TodayHero extends StatelessWidget {
               const SizedBox(width: 6),
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: Text('/ ${Limits.today}',
+                child: Text('/ $cap',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.sub)),
               ),
               const Spacer(),
@@ -163,7 +164,7 @@ class _TodayHero extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          CapacityBar(count: count, capacity: Limits.today, color: AppTheme.ink2, height: 8),
+          CapacityBar(count: count, capacity: cap, color: AppTheme.ink2, height: 8),
         ],
       ),
     );

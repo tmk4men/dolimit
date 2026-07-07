@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/app_settings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/pro_sheet.dart';
 import 'genre_management_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -80,12 +81,14 @@ class SettingsScreen extends StatelessWidget {
           onTap: () => _deleteAllDialog(context, app),
         ),
 
-        // Pro / 広告（プレースホルダー）
+        // Pro / 広告
         _section('Pro / 広告'),
         ListTile(
           leading: const Icon(Icons.workspace_premium),
           title: const Text('Proで枠を増やす'),
-          onTap: () => _comingSoon(context),
+          subtitle: Text(s.isPro ? '解除済み' : 'BOX/TODAY/LATER/ジャンルの上限を拡張'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => ProSheet.present(context),
         ),
         ListTile(
           leading: const Icon(Icons.ondemand_video),
