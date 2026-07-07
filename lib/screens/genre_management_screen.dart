@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../models/genre.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../util/limits.dart';
 
 /// ジャンル管理（アプリ全体で最大 5 個）
 class GenreManagementScreen extends StatelessWidget {
@@ -16,8 +15,8 @@ class GenreManagementScreen extends StatelessWidget {
     final genres = app.genres;
 
     return Scaffold(
-      appBar: AppBar(title: Text('ジャンル  ${genres.length}/${Limits.genre}')),
-      floatingActionButton: genres.length >= Limits.genre
+      appBar: AppBar(title: Text('ジャンル  ${genres.length}/${app.genreCap}')),
+      floatingActionButton: genres.length >= app.genreCap
           ? null
           : FloatingActionButton(
               backgroundColor: AppTheme.ink,

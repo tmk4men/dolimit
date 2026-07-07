@@ -1,0 +1,12 @@
+<!-- android/app/src/main/AndroidManifest.xml の <application> ... </application> 内に追加。
+     android:name は applicationId に合わせて完全修飾でも可（例: com.example.dolimit.DoLimitWidgetProvider）。 -->
+<receiver
+    android:name=".DoLimitWidgetProvider"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/dolimit_widget_info" />
+</receiver>

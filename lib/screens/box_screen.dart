@@ -26,7 +26,7 @@ class BoxScreen extends StatelessWidget {
         ScreenHeader(
           title: 'BOX',
           count: tasks.length,
-          capacity: Limits.box,
+          capacity: app.capacityFor(TaskStatus.box)!,
         ),
         // スワイプ説明（常に薄く表示）
         const Padding(

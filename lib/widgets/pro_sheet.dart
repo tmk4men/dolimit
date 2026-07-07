@@ -1,0 +1,156 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/purchase_service.dart';
+import '../state/app_state.dart';
+import '../theme/app_theme.dart';
+import '../util/limits.dart';
+import 'ui_kit.dart';
+
+/// 「Proで枠を増やす」導線。購入・復元を行い、成功したら [AppState.setPro] で解除。
+/// 実際のストア購入は [PurchaseService] のスタブを差し替えるまで「準備中」を返す。
+class ProSheet extends StatefulWidget {
+  const ProSheet({super.key});
+
+  static Future<void> present(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => const ProSheet(),
+    );
+  }
+
+  @override
+  State<ProSheet> createState() => _ProSheetState();
+}
+
+class _ProSheetState extends State<ProSheet> {
+  final PurchaseService _purchase = PurchaseService.create();
+  bool _busy = false;
+
+  Future<void> _run(Future<PurchaseResult> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final app = context.read<AppState>();
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await action();
+    if (!mounted) return;
+    if (result.unlocked) {
+      app.setPro(true);
+      Navigator.pop(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Proを解除しました')));
+      return;
+    }
+    setState(() => _busy = false);
+    messenger.showSnackBar(SnackBar(content: Text(result.message ?? '購入できませんでした')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPro = context.select<AppState, bool>((s) => s.isPro);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SheetHandle(),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              const Icon(Icons.workspace_premium, color: AppTheme.ink),
+              const SizedBox(width: 8),
+              const Text('Proで枠を増やす',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+              const Spacer(),
+              if (isPro)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: AppTheme.ink, borderRadius: AppTheme.radiusPill),
+                  child: const Text('解除済み',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _row('BOX', Limits.box, Limits.box + Limits.proBonusBox),
+          _row('TODAY', Limits.today, Limits.today + Limits.proBonusToday),
+          _row('LATER', Limits.later, Limits.later + Limits.proBonusLater),
+          _row('ジャンル', Limits.genre, Limits.genre + Limits.proBonusGenre),
+          const SizedBox(height: 16),
+          if (!isPro) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.ink,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _busy ? null : () => _run(_purchase.buyPro),
+                child: _busy
+                    ? const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Proを購入', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: TextButton(
+                onPressed: _busy ? null : () => _run(_purchase.restore),
+                child: const Text('購入を復元'),
+              ),
+            ),
+            // 開発用: リリースビルド(kDebugMode=false)では表示されない。
+            if (kDebugMode)
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    context.read<AppState>().setPro(true);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('開発用: Proを解除（debug）',
+                      style: TextStyle(color: AppTheme.sub)),
+                ),
+              ),
+          ] else if (kDebugMode)
+            Center(
+              child: TextButton(
+                onPressed: () => context.read<AppState>().setPro(false),
+                child: const Text('開発用: Pro を解除して戻す（debug）',
+                    style: TextStyle(color: AppTheme.sub)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, int base, int pro) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 84,
+            child: Text(label,
+                style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.ink2)),
+          ),
+          Text('$base', style: const TextStyle(color: AppTheme.sub)),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Icon(Icons.arrow_forward_rounded, size: 16, color: AppTheme.sub),
+          ),
+          Text('$pro',
+              style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.ink)),
+        ],
+      ),
+    );
+  }
+}
