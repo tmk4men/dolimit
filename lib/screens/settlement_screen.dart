@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/enums.dart';
+import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../util/limits.dart';
 import '../widgets/genre_chip.dart';
 
 /// 今日の精算。TODAY に残る未完了タスクを 1 件ずつ「残す？戻す？消す？」
@@ -13,7 +15,8 @@ class SettlementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
-    final tasks = app.tasksIn(TaskStatus.today);
+    // 精算済みのタスクは除く。TODAY 全件を見ると「明日もTODAY」で先へ進めない。
+    final tasks = app.pendingSettlement;
 
     return Scaffold(
       appBar: AppBar(title: const Text('今日の精算')),
@@ -23,7 +26,7 @@ class SettlementScreen extends StatelessWidget {
     );
   }
 
-  Widget _active(BuildContext context, AppState app, task, int remaining) {
+  Widget _active(BuildContext context, AppState app, TaskItem task, int remaining) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -58,7 +61,10 @@ class SettlementScreen extends StatelessWidget {
           _btn(context, '明日もTODAY', Icons.wb_sunny, AppTheme.todayAccent, () => app.settleKeepInToday(task)),
           const SizedBox(height: 10),
           _btn(context, 'LATERへ移動', Icons.nightlight, AppTheme.laterAccent, () {
-            app.settleMoveToLater(task);
+            if (!app.settleMoveToLater(task)) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.later))));
+            }
           }),
           const SizedBox(height: 10),
           _btn(context, '完了', Icons.check_circle, AppTheme.ink, () => app.complete(task)),

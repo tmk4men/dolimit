@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 
+import 'notification_route.dart';
 import 'widget_service.dart';
 
 /// home_widget を使ってホーム画面ウィジェットへデータを渡す。
@@ -19,6 +22,12 @@ class NativeWidgetService implements WidgetService {
   static const String _keyTitles = 'today_titles';
   static const String _keyUpdatedAt = 'updated_at';
 
+  final StreamController<String> _taps = StreamController<String>.broadcast();
+  StreamSubscription<Uri?>? _clicks;
+
+  @override
+  Stream<String> get taps => _taps.stream;
+
   @override
   Future<void> init() async {
     try {
@@ -26,6 +35,43 @@ class NativeWidgetService implements WidgetService {
     } catch (e) {
       debugPrint('NativeWidgetService: setAppGroupId failed: $e');
     }
+    try {
+      // ウィジェットのタップ（アプリが生きている間）。
+      _clicks = HomeWidget.widgetClicked.listen((uri) {
+        final payload = _payloadFrom(uri);
+        if (payload != null) _taps.add(payload);
+      });
+    } catch (e) {
+      debugPrint('NativeWidgetService: widgetClicked listen failed: $e');
+    }
+  }
+
+  @override
+  Future<String?> initialTapPayload() async {
+    try {
+      final uri = await HomeWidget.initiallyLaunchedFromHomeWidget();
+      return _payloadFrom(uri);
+    } catch (e) {
+      debugPrint('NativeWidgetService: initiallyLaunchedFromHomeWidget failed: $e');
+      return null;
+    }
+  }
+
+  /// ネイティブ側は `dolimit://today` のような URI を投げてくる。
+  /// host が無い形（`dolimit:today`）も拾えるよう path も見る。
+  static String? _payloadFrom(Uri? uri) {
+    if (uri == null) return null;
+    final host = uri.host;
+    if (host.isNotEmpty) return host;
+    final path = uri.path.replaceAll('/', '');
+    if (path.isNotEmpty) return path;
+    // 引数が無いタップは TODAY を開く（ウィジェットは TODAY を映すため）。
+    return NotificationPayload.today;
+  }
+
+  void dispose() {
+    _clicks?.cancel();
+    _taps.close();
   }
 
   @override

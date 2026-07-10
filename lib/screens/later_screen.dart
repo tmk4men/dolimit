@@ -93,9 +93,8 @@ class _LaterScreenState extends State<LaterScreen> {
     if (due != null) parts.add(_fmt(task, due));
     if (task.reminderEnabled) parts.add('通知あり');
     if (task.pendingMoveToToday) parts.add('移動待ち');
-    if (task.pendingAutoMoveToLater) parts.add('追放待ち');
 
-    final flagged = task.pendingMoveToToday || task.pendingAutoMoveToLater;
+    final flagged = task.pendingMoveToToday;
 
     return TaskCard(
       task: task,

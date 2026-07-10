@@ -8,13 +8,12 @@ import 'package:dolimit/services/widget_service.dart';
 import 'package:dolimit/state/app_state.dart';
 
 /// update() の呼び出しを記録するテスト用ウィジェットサービス。
-class FakeWidgetService implements WidgetService {
+class FakeWidgetService extends StubWidgetService {
+  FakeWidgetService();
+
   int calls = 0;
   int lastCount = -1;
   List<String> lastTitles = const [];
-
-  @override
-  Future<void> init() async {}
 
   @override
   Future<void> update({required int todayCount, required List<String> topTitles}) async {

@@ -17,6 +17,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _next() {
     _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
   }

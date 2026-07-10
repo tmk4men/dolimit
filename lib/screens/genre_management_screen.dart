@@ -27,9 +27,9 @@ class GenreManagementScreen extends StatelessWidget {
             ),
       body: SafeArea(
         child: genres.isEmpty
-            ? const Center(
-                child: Text('＋ でジャンルを作成（最大5個）',
-                    style: TextStyle(color: AppTheme.sub)))
+            ? Center(
+                child: Text('＋ でジャンルを作成（最大${app.genreCap}個）',
+                    style: const TextStyle(color: AppTheme.sub)))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -105,7 +105,11 @@ class GenreManagementScreen extends StatelessWidget {
                     return;
                   }
                 } else {
-                  app.renameGenre(existing, controller.text);
+                  final err = app.renameGenre(existing, controller.text);
+                  if (err != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+                    return;
+                  }
                   app.setGenreColor(existing, color);
                 }
                 Navigator.pop(ctx);
@@ -115,7 +119,7 @@ class GenreManagementScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).whenComplete(controller.dispose);
   }
 
   void _confirmDelete(BuildContext context, AppState app, Genre g) {

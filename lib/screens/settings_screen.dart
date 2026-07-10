@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/app_settings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ad_boost_action.dart';
 import '../widgets/pro_sheet.dart';
 import 'genre_management_screen.dart';
 
@@ -93,7 +94,8 @@ class SettingsScreen extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.ondemand_video),
           title: const Text('広告で一時的に枠を増やす'),
-          onTap: () => _comingSoon(context),
+          subtitle: Text(adBoostSubtitle(app)),
+          onTap: () => watchAdForBoost(context),
         ),
       ],
     );
@@ -174,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(controller.dispose);
   }
 
   void _deleteAllDialog(BuildContext context, AppState app) {
@@ -190,16 +192,6 @@ class SettingsScreen extends StatelessWidget {
             child: const Text('削除', style: TextStyle(color: AppTheme.todayAccent)),
           ),
         ],
-      ),
-    );
-  }
-
-  void _comingSoon(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('今後実装予定'),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
       ),
     );
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../state/app_navigation.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/ui_kit.dart';
@@ -9,22 +12,19 @@ import 'later_screen.dart';
 import 'settings_screen.dart';
 
 /// 下部タブ + 全画面共通 FAB（＋）
-class RootTab extends StatefulWidget {
+///
+/// 選択中のタブは [AppNavigation] が持つ。通知タップのように
+/// この画面の外からタブを切り替えたいため。
+class RootTab extends StatelessWidget {
   const RootTab({super.key});
 
   @override
-  State<RootTab> createState() => _RootTabState();
-}
-
-class _RootTabState extends State<RootTab> {
-  int _index = 0;
-
-  void _goToTab(int i) => setState(() => _index = i);
-
-  @override
   Widget build(BuildContext context) {
+    final nav = context.watch<AppNavigation>();
+    void goToTab(int i) => nav.goTo(i);
+
     final screens = [
-      HomeScreen(onGoToTab: _goToTab),
+      HomeScreen(onGoToTab: goToTab),
       const BoxScreen(),
       const TodayScreen(),
       const LaterScreen(),
@@ -32,13 +32,14 @@ class _RootTabState extends State<RootTab> {
     ];
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: IndexedStack(index: _index, children: screens)),
+      body: SafeArea(bottom: false, child: IndexedStack(index: nav.tab, children: screens)),
       floatingActionButton: _Fab(
-        onTap: () => AddTaskSheet.present(context, onSort: () => _goToTab(1)),
+        onTap: () => AddTaskSheet.present(context,
+            onSort: () => goToTab(AppNavigation.boxTab)),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _goToTab,
+        selectedIndex: nav.tab,
+        onDestinationSelected: goToTab,
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFE8E8EC),
         destinations: const [

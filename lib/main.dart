@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/store.dart';
+import 'services/ad_service.dart';
 import 'services/notification_service.dart';
+import 'services/speech_service.dart';
 import 'services/widget_service.dart';
+import 'state/app_navigation.dart';
 import 'state/app_state.dart';
 import 'app.dart';
 
@@ -26,8 +29,13 @@ Future<void> main() async {
   }
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: appState,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: appState),
+        ChangeNotifierProvider(create: (_) => AppNavigation()),
+        Provider<SpeechService>(create: (_) => SpeechService.create()),
+        Provider<RewardedAdService>(create: (_) => RewardedAdService.create()),
+      ],
       child: const DoLimitApp(),
     ),
   );

@@ -148,7 +148,11 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
                       initialValue: '$_customValue',
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(labelText: '数値'),
-                      onChanged: (s) => _customValue = int.tryParse(s) ?? _customValue,
+                      // 負値は「開始後に通知」になってしまうので受け付けない。
+                      onChanged: (s) {
+                        final v = int.tryParse(s);
+                        if (v != null && v >= 0) _customValue = v;
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),

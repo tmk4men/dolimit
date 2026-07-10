@@ -20,6 +20,10 @@ class AppState extends ChangeNotifier {
   /// バックアップJSONのスキーマ版。互換性チェックに使う。
   static const int backupVersion = 1;
 
+  /// 完了・削除したタスクを保存データに残す日数。過ぎたら破棄する。
+  /// 上限があるアプリの保存データが無制限に膨らまないようにするため。
+  static const int archiveRetentionDays = 30;
+
   final Store store;
   final NotificationService notifier;
 
@@ -40,6 +44,8 @@ class AppState extends ChangeNotifier {
     settings = store.loadSettings();
     runMaintenance();
     await notifier.rescheduleDailyReminders(settings);
+    // 端末再起動で OS 側の予約が消えても、次回起動で貼り直す。
+    _rescheduleLaterReminders();
     notifyListeners();
   }
 
@@ -68,6 +74,14 @@ class AppState extends ChangeNotifier {
     return g;
   }
 
+  /// 通知タップなど、id だけ分かっている場面から引く。見つからなければ null。
+  TaskItem? taskById(String id) {
+    for (final t in _tasks) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
   Genre? genreById(String? id) {
     if (id == null) return null;
     for (final g in _genres) {
@@ -78,11 +92,37 @@ class AppState extends ChangeNotifier {
 
   bool get isPro => settings.isPro;
 
-  /// Pro を加味した実効上限（BOX/TODAY/LATER）。上限なしの状態は null。
+  /// 広告ブーストが有効か。
+  bool get isBoosted {
+    final until = settings.boostUntil;
+    return until != null && until.isAfter(DateTime.now());
+  }
+
+  /// ブーストの残り時間。無効なら null。
+  Duration? get boostRemaining {
+    final until = settings.boostUntil;
+    if (until == null) return null;
+    final left = until.difference(DateTime.now());
+    return left.isNegative ? null : left;
+  }
+
+  /// 広告視聴の報酬として一時的に枠を広げる。
+  /// すでに有効なら、そのときの期限からさらに延長する。
+  void grantAdBoost() {
+    final now = DateTime.now();
+    final from = isBoosted ? settings.boostUntil! : now;
+    settings.boostUntil = from.add(Limits.adBoostDuration);
+    _persistSettings();
+    notifyListeners();
+  }
+
+  /// Pro とブーストを加味した実効上限（BOX/TODAY/LATER）。上限なしの状態は null。
   int? capacityFor(TaskStatus status) {
     final base = Limits.capacityFor(status);
     if (base == null) return null;
-    return base + (isPro ? Limits.proBonusFor(status) : 0);
+    return base +
+        (isPro ? Limits.proBonusFor(status) : 0) +
+        (isBoosted ? Limits.adBoostFor(status) : 0);
   }
 
   /// Pro を加味したジャンル上限。
@@ -97,16 +137,16 @@ class AppState extends ChangeNotifier {
   void setPro(bool value) {
     if (settings.isPro == value) return;
     settings.isPro = value;
-    store.saveSettings(settings);
+    _persistSettings();
     notifyListeners();
   }
 
   // ===== 追加 =====
 
-  /// BOX へ追加。満杯なら false。
+  /// BOX へ追加。空文字・満杯なら false。
   bool addToBox(String title, {TaskSource source = TaskSource.manual}) {
     final t = title.trim();
-    if (t.isEmpty) return true;
+    if (t.isEmpty) return false;
     if (isFull(TaskStatus.box)) return false;
     _tasks.add(TaskItem(id: _uuid.v4(), title: t, status: TaskStatus.box, source: source));
     _persistAndRefresh();
@@ -136,6 +176,7 @@ class AppState extends ChangeNotifier {
           .fold<int>(0, (m, t) => t.todayOrder > m ? t.todayOrder : m);
       task.todayOrder = maxOrder + 1;
       task.pendingMoveToToday = false;
+      task.pendingAutoMoveToLater = false;
     } else if (target == TaskStatus.later) {
       task.pendingAutoMoveToLater = false;
     }
@@ -169,7 +210,8 @@ class AppState extends ChangeNotifier {
   }
 
   void setMemo(TaskItem task, String? memo) {
-    task.memo = (memo == null || memo.isEmpty) ? null : memo;
+    final m = memo?.trim();
+    task.memo = (m == null || m.isEmpty) ? null : m;
     task.updatedAt = DateTime.now();
     _persistAndRefresh();
   }
@@ -225,10 +267,20 @@ class AppState extends ChangeNotifier {
     return task.startAt;
   }
 
+  /// LATER の事前通知を貼り直す。開始日のみ指定のタスクは
+  /// [AppSettings.laterAutoMove] を基準時刻に使うため、設定が変わったら
+  /// 予約もやり直す必要がある。
+  void _rescheduleLaterReminders() {
+    for (final t in _tasks.where((t) => t.status == TaskStatus.later)) {
+      _scheduleReminder(t);
+    }
+  }
+
   void _scheduleReminder(TaskItem task) {
     notifier.cancelLaterReminder(task.id);
     final base = effectiveStartDate(task);
-    if (!task.reminderEnabled || base == null) {
+    // 通知を切っているなら予約しない。切っても LATER 通知だけ鳴り続けるのを防ぐ。
+    if (!task.reminderEnabled || base == null || !settings.notificationsEnabled) {
       task.reminderAt = null;
       return;
     }
@@ -243,20 +295,41 @@ class AppState extends ChangeNotifier {
 
   // ===== 自動処理エンジン =====
 
+  /// 自動処理をまとめて実行する。起動時・復帰時・1分ごとに呼ばれる。
+  ///
+  /// 状態が変わったときだけ保存し、購読者へ通知する。保存しないと、
+  /// 自動追放の結果が失われて起動のたびに追放通知が再送されてしまう。
   void runMaintenance() {
     final now = DateTime.now();
-    _rollOverDay(now);
-    _autoMoveDueLater(now);
-    _autoBanishStaleToday(now);
+    var changed = _rollOverDay(now);
+    changed = _autoMoveDueLater(now) || changed;
+    changed = _autoBanishStaleToday(now) || changed;
+    changed = _purgeArchived(now) || changed;
+    if (changed) _persistTasks();
+
+    // ブーストの失効は tasks ではなく settings 側の変更。
+    final boostExpired = _expireBoost(now);
     _refreshBadge();
+    if (changed || boostExpired) notifyListeners();
   }
 
-  void _rollOverDay(DateTime now) {
+  /// 期限切れの広告ブーストを片付ける。上限表示が戻る。
+  bool _expireBoost(DateTime now) {
+    final until = settings.boostUntil;
+    if (until == null || until.isAfter(now)) return false;
+    settings.boostUntil = null;
+    _persistSettings();
+    return true;
+  }
+
+  bool _rollOverDay(DateTime now) {
     final today = DayClock.startOfDay(now);
+    var changed = false;
     for (final t in _tasks.where((t) => t.status == TaskStatus.today)) {
       final last = t.lastTodayDate;
       if (last == null) {
         t.lastTodayDate = today;
+        changed = true;
         continue;
       }
       final days = DayClock.daysBetween(last, now);
@@ -267,11 +340,14 @@ class AppState extends ChangeNotifier {
         t.consecutiveUnfinishedDays += days;
         t.snoozeCountToday = 0;
         t.lastTodayDate = today;
+        changed = true;
       }
     }
+    return changed;
   }
 
-  void _autoMoveDueLater(DateTime now) {
+  bool _autoMoveDueLater(DateTime now) {
+    var changed = false;
     for (final t in _tasks.where((t) => t.status == TaskStatus.later && t.autoMoveToToday).toList()) {
       final due = effectiveStartDate(t);
       if (due == null || due.isAfter(now)) continue;
@@ -279,6 +355,7 @@ class AppState extends ChangeNotifier {
         if (!t.pendingMoveToToday) {
           t.pendingMoveToToday = true;
           notifier.notifyTodayFull(t.title);
+          changed = true;
         }
         continue;
       }
@@ -286,13 +363,19 @@ class AppState extends ChangeNotifier {
       t.lastAutoMovedAt = now;
       notifier.cancelLaterReminder(t.id);
       notifier.notifyMovedToToday(t.title);
+      changed = true;
     }
+    return changed;
   }
 
-  void _autoBanishStaleToday(DateTime now) {
+  bool _autoBanishStaleToday(DateTime now) {
+    var changed = false;
     for (final t in _tasks.where((t) => t.status == TaskStatus.today && t.consecutiveUnfinishedDays >= 3).toList()) {
       if (count(TaskStatus.later) >= capacityFor(TaskStatus.later)!) {
-        t.pendingAutoMoveToLater = true; // 追放待ち
+        if (!t.pendingAutoMoveToLater) {
+          t.pendingAutoMoveToLater = true; // 追放待ち（TODAY 画面に表示される）
+          changed = true;
+        }
         continue;
       }
       t.status = TaskStatus.later;
@@ -301,10 +384,34 @@ class AppState extends ChangeNotifier {
       t.pendingAutoMoveToLater = false;
       t.updatedAt = now;
       notifier.notifyBanishedToLater(t.title);
+      changed = true;
     }
+    return changed;
+  }
+
+  /// 完了・削除から [archiveRetentionDays] 日を過ぎたタスクを保存データから消す。
+  bool _purgeArchived(DateTime now) {
+    final before = _tasks.length;
+    _tasks.removeWhere((t) {
+      if (t.status != TaskStatus.done && t.status != TaskStatus.deleted) return false;
+      final at = t.completedAt ?? t.deletedAt ?? t.updatedAt;
+      return DayClock.daysBetween(at, now) >= archiveRetentionDays;
+    });
+    return _tasks.length != before;
   }
 
   // ===== 今日の精算 =====
+
+  /// まだ今日の精算が済んでいない TODAY のタスク。
+  /// 「明日もTODAY」はタスクを TODAY に残すので、精算済みかどうかは
+  /// [TaskItem.lastSweptAt] が今日かどうかで判定する。これを見ないと
+  /// 精算画面が同じタスクを出し続けて先へ進めなくなる。
+  List<TaskItem> get pendingSettlement {
+    final now = DateTime.now();
+    return tasksIn(TaskStatus.today)
+        .where((t) => !DayClock.isSameDay(t.lastSweptAt, now))
+        .toList();
+  }
 
   void settleKeepInToday(TaskItem task) {
     // 未完了日数の加算は日跨ぎ (_rollOverDay) が一元管理する。
@@ -315,17 +422,16 @@ class AppState extends ChangeNotifier {
     _persistAndRefresh();
   }
 
-  void settleMoveToLater(TaskItem task) {
-    if (count(TaskStatus.later) >= capacityFor(TaskStatus.later)!) {
-      task.pendingAutoMoveToLater = true;
-    } else {
-      task.status = TaskStatus.later;
-      task.consecutiveUnfinishedDays = 0;
-      task.pendingAutoMoveToLater = false;
-    }
+  /// 精算で LATER へ戻す。LATER が満杯なら何もせず false。
+  bool settleMoveToLater(TaskItem task) {
+    if (count(TaskStatus.later) >= capacityFor(TaskStatus.later)!) return false;
+    task.status = TaskStatus.later;
+    task.consecutiveUnfinishedDays = 0;
+    task.pendingAutoMoveToLater = false;
     task.lastSweptAt = DateTime.now();
     task.updatedAt = DateTime.now();
     _persistAndRefresh();
+    return true;
   }
 
   // ===== ジャンル =====
@@ -343,11 +449,16 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-  void renameGenre(Genre g, String name) {
-    g.name = name.trim();
+  /// 戻り値: null=成功 / メッセージ=失敗理由
+  String? renameGenre(Genre g, String name) {
+    final t = name.trim();
+    if (t.isEmpty) return '名前を入力してください';
+    if (_genres.any((x) => x.id != g.id && x.name == t)) return '同じ名前があります';
+    g.name = t;
     g.updatedAt = DateTime.now();
     _persistGenres();
     notifyListeners();
+    return null;
   }
 
   void setGenreColor(Genre g, int colorValue) {
@@ -378,9 +489,21 @@ class AppState extends ChangeNotifier {
   // ===== 設定 =====
 
   void updateSettings(void Function(AppSettings s) update) {
+    final wasEnabled = settings.notificationsEnabled;
+    final wasAutoMove = settings.laterAutoMove;
+
     update(settings);
-    store.saveSettings(settings);
+    _persistSettings();
     notifier.rescheduleDailyReminders(settings);
+
+    // 通知の ON/OFF と自動移動時刻は、どちらも LATER の事前通知の予約内容を変える。
+    final autoMoveChanged = settings.laterAutoMove.hour != wasAutoMove.hour ||
+        settings.laterAutoMove.minute != wasAutoMove.minute;
+    if (settings.notificationsEnabled != wasEnabled || autoMoveChanged) {
+      _rescheduleLaterReminders();
+      _persistTasks();
+    }
+
     _refreshBadge();
     notifyListeners();
   }
@@ -407,8 +530,13 @@ class AppState extends ChangeNotifier {
       }
       final map = decoded;
 
-      final version = (map['version'] ?? 1);
-      if (version is int && version > backupVersion) {
+      // version が int 以外なら壊れている。素通しさせると互換性チェックを
+      // すり抜けて未知の形式を読み込んでしまう。
+      final version = map['version'] ?? 1;
+      if (version is! int) {
+        return 'バックアップの形式が正しくありません。';
+      }
+      if (version > backupVersion) {
         return 'より新しいバージョンのバックアップです。アプリを更新してください。';
       }
       if (map['tasks'] is! List || map['genres'] is! List) {
@@ -436,12 +564,17 @@ class AppState extends ChangeNotifier {
       }
 
       // 全て成功したのでまとめて反映。
+      // 置き換えで消えるタスクの予約通知を先に取り消す。放置すると
+      // 存在しないタスクの「まもなく開始」通知が鳴る。
+      _cancelAllLaterReminders();
       _tasks = tasks;
       _genres = genres;
       settings = newSettings;
+      // 取り込んだ LATER タスクの予約を貼り直す。
+      _rescheduleLaterReminders();
       _persistTasks();
       _persistGenres();
-      store.saveSettings(settings);
+      _persistSettings();
       runMaintenance();
       notifyListeners();
       return null;
@@ -451,6 +584,7 @@ class AppState extends ChangeNotifier {
   }
 
   void deleteAll() {
+    _cancelAllLaterReminders();
     _tasks = [];
     _genres = [];
     _persistTasks();
@@ -459,10 +593,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _cancelAllLaterReminders() {
+    for (final t in _tasks) {
+      notifier.cancelLaterReminder(t.id);
+    }
+  }
+
   // ===== 内部 =====
 
-  void _persistTasks() => store.saveTasks(_tasks);
-  void _persistGenres() => store.saveGenres(_genres);
+  /// 保存は待たずに投げるが、失敗を黙って捨てない。
+  void _guard(Future<void> save, String what) {
+    save.catchError((Object e) => debugPrint('AppState: failed to save $what: $e'));
+  }
+
+  void _persistTasks() => _guard(store.saveTasks(_tasks), 'tasks');
+  void _persistGenres() => _guard(store.saveGenres(_genres), 'genres');
+  void _persistSettings() => _guard(store.saveSettings(settings), 'settings');
 
   void _persistAndRefresh() {
     _persistTasks();
