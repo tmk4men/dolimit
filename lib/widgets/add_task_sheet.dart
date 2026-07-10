@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../services/speech_service.dart';
 import '../state/app_state.dart';
 import '../models/enums.dart';
 import '../theme/app_theme.dart';
@@ -8,7 +9,10 @@ import 'pro_sheet.dart';
 import 'ui_kit.dart';
 
 /// ＋ から開くタスク追加シート。入力はタスク名のみ。必ず BOX へ。
-/// 音声: A案（端末の音声入力キーボードを使えるテキストフィールドにフォーカス）。
+///
+/// 音声入力は端末の音声認識（[SpeechService]）を使う。認識が使えない
+/// 端末では、キーボードの音声入力ボタンを使えるようフォーカスするだけに
+/// フォールバックする。
 class AddTaskSheet extends StatefulWidget {
   const AddTaskSheet({super.key});
 
@@ -31,11 +35,12 @@ class AddTaskSheet extends StatefulWidget {
   }
 
   static Future<void> _showBoxFullAlert(BuildContext context, VoidCallback? onSort) {
+    final cap = context.read<AppState>().capacityFor(TaskStatus.box)!;
     return showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('BOXがいっぱいです'),
-        content: const Text('15個たまっています。先に仕分けてください。'),
+        content: Text('$cap個たまっています。先に仕分けてください。'),
         actions: [
           TextButton(
             onPressed: () { Navigator.pop(ctx); onSort?.call(); },
@@ -69,17 +74,69 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
   final _focus = FocusNode();
   bool _usedVoice = false;
 
+  late final SpeechService _speech = context.read<SpeechService>();
+  bool _speechReady = false;
+  bool _listening = false;
+
+  /// 認識開始時点の入力内容。認識結果はこの後ろに足す。
+  String _textBeforeListening = '';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+    _speech.init().then((ok) {
+      if (mounted) setState(() => _speechReady = ok);
+    });
   }
 
   @override
   void dispose() {
+    // 認識しっぱなしでシートを閉じてもマイクを離す。
+    _speech.cancel();
     _controller.dispose();
     _focus.dispose();
     super.dispose();
+  }
+
+  /// マイクの ON/OFF。認識が使えない端末ではキーボードへフォールバック。
+  Future<void> _toggleMic() async {
+    if (!_speechReady) {
+      // 端末の音声入力キーボードへ誘導する（従来の挙動）。
+      setState(() => _usedVoice = true);
+      _focus.requestFocus();
+      return;
+    }
+
+    if (_listening) {
+      await _speech.stop();
+      if (mounted) setState(() => _listening = false);
+      return;
+    }
+
+    _textBeforeListening = _controller.text;
+    setState(() {
+      _usedVoice = true;
+      _listening = true;
+    });
+    // 認識中はキーボードを引っ込めて、声に集中させる。
+    _focus.unfocus();
+
+    await _speech.start(
+      onResult: (r) {
+        if (!mounted) return;
+        final joined = _textBeforeListening.isEmpty
+            ? r.text
+            : '$_textBeforeListening ${r.text}';
+        _controller.value = TextEditingValue(
+          text: joined,
+          selection: TextSelection.collapsed(offset: joined.length),
+        );
+      },
+      onDone: () {
+        if (mounted) setState(() => _listening = false);
+      },
+    );
   }
 
   void _add() {
@@ -131,27 +188,34 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  // A案: 端末の音声入力キーボードへフォーカス（source=voice 扱い）
-                  // TODO: 音声認識(speech_to_text)によるフル実装
-                  setState(() => _usedVoice = true);
-                  _focus.requestFocus();
-                },
-                child: Container(
+                onTap: _toggleMic,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
                   width: 52, height: 52,
                   decoration: BoxDecoration(
-                    color: _usedVoice ? AppTheme.ink : AppTheme.fill,
+                    color: _listening
+                        ? AppTheme.todayAccent
+                        : (_usedVoice ? AppTheme.ink : AppTheme.fill),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(Icons.mic_none_rounded,
-                      color: _usedVoice ? Colors.white : AppTheme.ink2),
+                  child: Icon(
+                    _listening ? Icons.stop_rounded : Icons.mic_none_rounded,
+                    color: (_listening || _usedVoice) ? Colors.white : AppTheme.ink2,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text('BOXに入れる。左右で仕分ける。TODAYで決着。',
-              style: TextStyle(fontSize: 12.5, color: AppTheme.sub)),
+          Text(
+            _listening
+                ? '聞き取っています… もう一度押すと確定します'
+                : 'BOXに入れる。左右で仕分ける。TODAYで決着。',
+            style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: _listening ? FontWeight.w700 : FontWeight.w400,
+                color: _listening ? AppTheme.todayAccent : AppTheme.sub),
+          ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,

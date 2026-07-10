@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'data/store.dart';
 import 'services/notification_service.dart';
+import 'services/speech_service.dart';
 import 'services/widget_service.dart';
 import 'state/app_navigation.dart';
 import 'state/app_state.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider.value(value: appState),
         ChangeNotifierProvider(create: (_) => AppNavigation()),
+        Provider<SpeechService>(create: (_) => SpeechService.create()),
       ],
       child: const DoLimitApp(),
     ),

@@ -28,7 +28,7 @@
 
 ## 機能
 
-- ＋（FAB）でタスク名だけ入力 → 必ず BOX へ（音声入力導線あり / `source=voice`）
+- ＋（FAB）でタスク名だけ入力 → 必ず BOX へ（端末の音声認識で書き起こし / `source=voice`）
 - BOX を **右スワイプ=TODAY（赤）/ 左スワイプ=LATER（青）** で仕分け（削除はスワイプに含めない）
 - TODAY: 残り時間（夜に近づくほど赤）、放置日数、ドラッグ並び替え、ジャンルフィルター
 - LATER: 開始日グループ表示、開始日/時刻・事前通知・自動移動 ON/OFF
@@ -61,14 +61,17 @@ flutter run -d chrome      # Web で確認
    - **Android**: `AndroidManifest.xml` に `POST_NOTIFICATIONS`（Android 13+）を追加。inexact スケジュールなので `SCHEDULE_EXACT_ALARM` は不要。再起動で OS 側の予約が消えても、次回起動時に `AppState.load()` が貼り直す。
    - **iOS**: 通知・バッジ権限は起動時に要求（`main.dart`）。
    - ホーム画面ウィジェットは Dart 側のデータ供給のみ実装済み。ネイティブ表示は `native_widget_reference/` を参照。
-5. `flutter build appbundle --release`（Android）/ `flutter build ipa`（iOS）→ 各ストアへ。
+5. 音声入力（`speech_to_text`）にはネイティブ側の宣言が必要。未設定なら
+   `SpeechService.isAvailable` が false になり、キーボードの音声入力へ自動でフォールバックする。
+   - **Android**: `AndroidManifest.xml` に `<uses-permission android:name="android.permission.RECORD_AUDIO"/>` と、
+     `<queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries>`。
+   - **iOS**: `Info.plist` に `NSMicrophoneUsageDescription` と `NSSpeechRecognitionUsageDescription`。
+6. `flutter build appbundle --release`（Android）/ `flutter build ipa`（iOS）→ 各ストアへ。
 
 ## TODO / プレースホルダー
 
 - **Pro 課金**: 上限拡張ロジック・導線 UI は実装済み（`ProSheet`）。実際のストア購入（`in_app_purchase`）は未接続で、`PurchaseService` のスタブが「準備中」を返す（debug ビルドでは開発用に Pro 解除ボタンあり）。
 - **ホーム画面ウィジェット**: Dart 側のデータ供給は実装済み。ネイティブ表示の組み込みは `native_widget_reference/` を参照（Mac 側作業）。
 - 広告で一時的に枠拡張（ボタンのみ「今後実装予定」）
-- 通知タップ時のディープリンク
-- 音声認識のフル実装（現状は端末の音声入力キーボード導線）
 
 `_ios_swiftui_reference/` は最初に検討した iOS ネイティブ(SwiftUI)版の参考実装（不使用）。

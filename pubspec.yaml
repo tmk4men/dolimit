@@ -21,6 +21,8 @@ dependencies:
   timezone: ^0.9.4
   flutter_timezone: ^3.0.1
   home_widget: ^0.6.0         # ホーム画面ウィジェットへのデータ供給
+  speech_to_text: ^7.0.0      # 音声入力（端末の音声認識）
+  in_app_purchase: ^3.2.0     # Pro 課金（ストア商品 dolimit_pro）
 
 dev_dependencies:
   flutter_test:
