@@ -83,6 +83,11 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
   }
 
   void _add() {
+    // 空欄なら閉じも通知もせず、入力を促す。
+    if (_controller.text.trim().isEmpty) {
+      _focus.requestFocus();
+      return;
+    }
     final app = context.read<AppState>();
     final ok = app.addToBox(_controller.text, source: _usedVoice ? TaskSource.voice : TaskSource.manual);
     final messenger = ScaffoldMessenger.of(context);

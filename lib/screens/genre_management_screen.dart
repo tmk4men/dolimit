@@ -105,7 +105,11 @@ class GenreManagementScreen extends StatelessWidget {
                     return;
                   }
                 } else {
-                  app.renameGenre(existing, controller.text);
+                  final err = app.renameGenre(existing, controller.text);
+                  if (err != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+                    return;
+                  }
                   app.setGenreColor(existing, color);
                 }
                 Navigator.pop(ctx);

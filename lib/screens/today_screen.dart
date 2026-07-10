@@ -82,10 +82,14 @@ class _TodayScreenState extends State<TodayScreen> {
 
   Widget _card(BuildContext context, AppState app, TaskItem task) {
     final stale = task.consecutiveUnfinishedDays >= 3;
+    // LATER が満杯で追放できないタスクは TODAY に留まる。理由を見せる。
+    final subtitle = task.pendingAutoMoveToLater
+        ? '${task.ageLabel}  ·  追放待ち（LATERが満杯）'
+        : task.ageLabel;
     return TaskCard(
       task: task,
       genre: app.genreById(task.genreId),
-      subtitle: task.ageLabel,
+      subtitle: subtitle,
       subtitleColor: stale ? AppTheme.todayAccent : AppTheme.sub,
       onToggle: () => app.complete(task),
       onTapBody: () => EditTaskSheet.present(context, task),
