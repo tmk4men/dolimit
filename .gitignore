@@ -6,7 +6,10 @@
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
+
+# pubspec.lock はコミットする。
+# ライブラリではなくアプリなので、依存の解決結果を固定して
+# 「こちらを何も変えていないのに CI が落ちる」を防ぐ。
 
 # IDE
 .idea/

@@ -12,9 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # pubspec.lock をコミットしているので、SDK も固定して解決結果を揃える。
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.44.6
 
       - name: Install deps
         run: flutter pub get

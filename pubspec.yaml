@@ -1,7 +1,9 @@
 name: dolimit
 description: "DoLimit / 今日やる枠 — タスクを溜めずに今日に決着させるタスク遂行アプリ"
 publish_to: "none"
-version: 0.1.0+1
+# 通知ディープリンク / 音声認識 / Pro 課金 / 一時枠拡張 を追加。
+# Android は versionCode（+ の右）が上がらないとアップロードを弾かれる。
+version: 0.2.0+2
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
