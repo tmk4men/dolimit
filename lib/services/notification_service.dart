@@ -25,6 +25,14 @@ abstract class NotificationService {
   /// アプリアイコンバッジ = TODAY 未完了数（0 で非表示）
   Future<void> applyBadge(int todayUnfinished, {required bool enabled});
 
+  /// 起動中に通知をタップしたときのペイロード。
+  /// 書式は `lib/services/notification_route.dart` を参照。
+  Stream<String> get taps;
+
+  /// 通知タップでアプリが起動した場合のペイロード（コールドスタート）。
+  /// タップ以外の起動なら null。
+  Future<String?> initialTapPayload();
+
   /// 環境に応じた実装を返す（Web=Stub / ネイティブ=Native）。
   static NotificationService create() => impl.createNotificationService();
 }
@@ -60,4 +68,10 @@ class StubNotificationService implements NotificationService {
 
   @override
   Future<void> applyBadge(int todayUnfinished, {required bool enabled}) async {}
+
+  @override
+  Stream<String> get taps => const Stream<String>.empty();
+
+  @override
+  Future<String?> initialTapPayload() async => null;
 }

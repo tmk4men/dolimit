@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'data/store.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
+import 'state/app_navigation.dart';
 import 'state/app_state.dart';
 import 'app.dart';
 
@@ -26,8 +27,11 @@ Future<void> main() async {
   }
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: appState,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: appState),
+        ChangeNotifierProvider(create: (_) => AppNavigation()),
+      ],
       child: const DoLimitApp(),
     ),
   );

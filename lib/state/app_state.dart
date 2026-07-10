@@ -74,6 +74,14 @@ class AppState extends ChangeNotifier {
     return g;
   }
 
+  /// 通知タップなど、id だけ分かっている場面から引く。見つからなければ null。
+  TaskItem? taskById(String id) {
+    for (final t in _tasks) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
   Genre? genreById(String? id) {
     if (id == null) return null;
     for (final g in _genres) {

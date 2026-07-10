@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -6,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/app_settings.dart';
+import 'notification_route.dart';
 import 'notification_service.dart';
 
 /// Android / iOS 向けの通知・バッジ実装。
@@ -19,6 +22,11 @@ class NativeNotificationService implements NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _ready = false;
+
+  final StreamController<String> _taps = StreamController<String>.broadcast();
+
+  @override
+  Stream<String> get taps => _taps.stream;
 
   // 固定 ID（毎日のリマインドは reschedule で貼り替えるため固定）
   static const int _idMorning = 1;
@@ -68,9 +76,24 @@ class NativeNotificationService implements NotificationService {
     );
     await _plugin.initialize(
       const InitializationSettings(android: android, iOS: darwin),
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        if (payload != null && payload.isNotEmpty) _taps.add(payload);
+      },
     );
     _ready = true;
   }
+
+  @override
+  Future<String?> initialTapPayload() async {
+    await init();
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details == null || !details.didNotificationLaunchApp) return null;
+    return details.notificationResponse?.payload;
+  }
+
+  /// テストや hot restart 用。通常は破棄しない。
+  void dispose() => _taps.close();
 
   @override
   Future<bool> requestPermission() async {
@@ -105,23 +128,27 @@ class NativeNotificationService implements NotificationService {
 
     await _scheduleDaily(_idMorning, settings.morning.hour,
         settings.morning.minute, '今日やることを確認しましょう',
-        'BOX と TODAY を見返して、今日の一手を決めましょう。');
+        'BOX と TODAY を見返して、今日の一手を決めましょう。',
+        NotificationPayload.box);
     await _scheduleDaily(_idMidday, settings.midday.hour,
         settings.midday.minute, 'TODAY の進み具合は？',
-        '午後です。残りの TODAY を片付けていきましょう。');
+        '午後です。残りの TODAY を片付けていきましょう。',
+        NotificationPayload.today);
     await _scheduleDaily(_idSettlement, settings.settlement.hour,
         settings.settlement.minute, '今日の精算をしましょう',
-        '未完了の TODAY を「明日も／LATER／完了／削除」で精算します。');
+        '未完了の TODAY を「明日も／LATER／完了／削除」で精算します。',
+        NotificationPayload.settlement);
   }
 
-  Future<void> _scheduleDaily(
-      int id, int hour, int minute, String title, String body) async {
+  Future<void> _scheduleDaily(int id, int hour, int minute, String title,
+      String body, String payload) async {
     await _plugin.zonedSchedule(
       id,
       title,
       body,
       _nextInstanceOf(hour, minute),
       _details,
+      payload: payload,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -156,6 +183,7 @@ class NativeNotificationService implements NotificationService {
       'LATER のタスクの開始時刻が近づいています。',
       when,
       _details,
+      payload: NotificationPayload.task(taskId),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -169,22 +197,24 @@ class NativeNotificationService implements NotificationService {
   }
 
   @override
-  Future<void> notifyMovedToToday(String title) =>
-      _showInstant('TODAY へ移動しました', '「$title」を TODAY に移しました。');
+  Future<void> notifyMovedToToday(String title) => _showInstant(
+      'TODAY へ移動しました', '「$title」を TODAY に移しました。', NotificationPayload.today);
 
   @override
-  Future<void> notifyTodayFull(String title) => _showInstant(
-      'TODAY が満杯です', '「$title」を移動できません。TODAY を整理してください。');
+  Future<void> notifyTodayFull(String title) => _showInstant('TODAY が満杯です',
+      '「$title」を移動できません。TODAY を整理してください。', NotificationPayload.today);
 
   @override
   Future<void> notifyBanishedToLater(String title) => _showInstant(
-      'LATER へ戻しました', '「$title」は3日連続で未完了のため LATER に戻しました。');
+      'LATER へ戻しました',
+      '「$title」は3日連続で未完了のため LATER に戻しました。',
+      NotificationPayload.later);
 
-  Future<void> _showInstant(String title, String body) async {
+  Future<void> _showInstant(String title, String body, String payload) async {
     await init();
     // ワンショット。連番を回して直近の通知どうしの衝突だけ避ける。
     final id = _idInstantBase + (_instantSeq++ % _idInstantSpan);
-    await _plugin.show(id, title, body, _details);
+    await _plugin.show(id, title, body, _details, payload: payload);
   }
 
   @override
