@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/app_settings.dart';
+import '../services/ad_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/pro_sheet.dart';
@@ -93,10 +94,19 @@ class SettingsScreen extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.ondemand_video),
           title: const Text('広告で一時的に枠を増やす'),
-          onTap: () => _comingSoon(context),
+          subtitle: Text(_boostSubtitle(app)),
+          onTap: () => watchAdForBoost(context),
         ),
       ],
     );
+  }
+
+  String _boostSubtitle(AppState app) {
+    final left = app.boostRemaining;
+    if (left == null) return '24時間だけ BOX+5 / TODAY+2 / LATER+5';
+    final h = left.inHours;
+    final m = left.inMinutes.remainder(60);
+    return '拡張中 — 残り $h時間$m分';
   }
 
   Widget _section(String title) => Padding(
@@ -194,13 +204,17 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _comingSoon(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('今後実装予定'),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-      ),
-    );
+}
+
+/// 報酬型広告を見せて、視聴し切ったら枠を広げる。
+/// 設定画面と BOX 満杯ダイアログの両方から使う。
+Future<void> watchAdForBoost(BuildContext context) async {
+  final app = context.read<AppState>();
+  final ads = context.read<RewardedAdService>();
+  final messenger = ScaffoldMessenger.of(context);
+
+  final message = await redeemAdBoost(ads, app.grantAdBoost);
+  if (message != null) {
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }

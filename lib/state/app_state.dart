@@ -92,11 +92,37 @@ class AppState extends ChangeNotifier {
 
   bool get isPro => settings.isPro;
 
-  /// Pro を加味した実効上限（BOX/TODAY/LATER）。上限なしの状態は null。
+  /// 広告ブーストが有効か。
+  bool get isBoosted {
+    final until = settings.boostUntil;
+    return until != null && until.isAfter(DateTime.now());
+  }
+
+  /// ブーストの残り時間。無効なら null。
+  Duration? get boostRemaining {
+    final until = settings.boostUntil;
+    if (until == null) return null;
+    final left = until.difference(DateTime.now());
+    return left.isNegative ? null : left;
+  }
+
+  /// 広告視聴の報酬として一時的に枠を広げる。
+  /// すでに有効なら、そのときの期限からさらに延長する。
+  void grantAdBoost() {
+    final now = DateTime.now();
+    final from = isBoosted ? settings.boostUntil! : now;
+    settings.boostUntil = from.add(Limits.adBoostDuration);
+    _persistSettings();
+    notifyListeners();
+  }
+
+  /// Pro とブーストを加味した実効上限（BOX/TODAY/LATER）。上限なしの状態は null。
   int? capacityFor(TaskStatus status) {
     final base = Limits.capacityFor(status);
     if (base == null) return null;
-    return base + (isPro ? Limits.proBonusFor(status) : 0);
+    return base +
+        (isPro ? Limits.proBonusFor(status) : 0) +
+        (isBoosted ? Limits.adBoostFor(status) : 0);
   }
 
   /// Pro を加味したジャンル上限。
@@ -280,8 +306,20 @@ class AppState extends ChangeNotifier {
     changed = _autoBanishStaleToday(now) || changed;
     changed = _purgeArchived(now) || changed;
     if (changed) _persistTasks();
+
+    // ブーストの失効は tasks ではなく settings 側の変更。
+    final boostExpired = _expireBoost(now);
     _refreshBadge();
-    if (changed) notifyListeners();
+    if (changed || boostExpired) notifyListeners();
+  }
+
+  /// 期限切れの広告ブーストを片付ける。上限表示が戻る。
+  bool _expireBoost(DateTime now) {
+    final until = settings.boostUntil;
+    if (until == null || until.isAfter(now)) return false;
+    settings.boostUntil = null;
+    _persistSettings();
+    return true;
   }
 
   bool _rollOverDay(DateTime now) {

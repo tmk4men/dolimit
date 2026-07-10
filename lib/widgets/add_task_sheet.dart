@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../screens/settings_screen.dart' show watchAdForBoost;
 import '../services/speech_service.dart';
 import '../state/app_state.dart';
 import '../models/enums.dart';
@@ -47,8 +48,11 @@ class AddTaskSheet extends StatefulWidget {
             child: const Text('仕分ける'),
           ),
           TextButton(
-            onPressed: () => _comingSoon(ctx),
-            child: const Text('広告で一時的に+5'), // TODO: 広告SDK
+            onPressed: () {
+              Navigator.pop(ctx);
+              watchAdForBoost(context);
+            },
+            child: Text('広告で一時的に+${Limits.adBoostBox}'),
           ),
           TextButton(
             onPressed: () { Navigator.pop(ctx); ProSheet.present(context); },
@@ -58,11 +62,6 @@ class AddTaskSheet extends StatefulWidget {
         ],
       ),
     );
-  }
-
-  static void _comingSoon(BuildContext ctx) {
-    Navigator.pop(ctx);
-    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('今後実装予定')));
   }
 
   @override

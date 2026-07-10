@@ -68,12 +68,24 @@ flutter run -d chrome      # Web で確認
    - **iOS**: `Info.plist` に `NSMicrophoneUsageDescription` と `NSSpeechRecognitionUsageDescription`。
 6. `flutter build appbundle --release`（Android）/ `flutter build ipa`（iOS）→ 各ストアへ。
 
+## 残作業（アプリ外の設定が必要なもの）
+
+- **Pro 課金**: ストアで非消費型商品 `dolimit_pro` を作成する。
+- **広告での一時枠拡張**: 枠拡張の仕組み（24時間 BOX+5 / TODAY+2 / LATER+5）は実装済み。
+  広告 SDK は `RewardedAdService` の差し込み口のみ。`google_mobile_ads` は
+  `AndroidManifest.xml` の AdMob アプリ ID が無いと**起動時にクラッシュ**するが、
+  このリポジトリは `android/` を `.gitignore` していて ID を置けないため未接続。
+  AdMob アカウントを用意しプラットフォームディレクトリを固定してから
+  `StubRewardedAdService` を差し替える。
+- **ホーム画面ウィジェット**: Dart 側（データ供給・タップ遷移）は実装済み。
+  ネイティブ表示は `native_widget_reference/` を各プラットフォームへ組み込む。
+
 ## TODO / プレースホルダー
 
 - **Pro 課金**: `in_app_purchase` で実装済み（`StorePurchaseService`）。購入・復元・`completePurchase` まで扱う。
   **ストア側で非消費型の商品 ID `dolimit_pro` を作成する必要がある**（未作成だと「商品が見つかりません」を返す）。
   Web では条件付きインポートでスタブに切り替わり「準備中」を返す。debug ビルドでは開発用に Pro 解除ボタンあり。
 - **ホーム画面ウィジェット**: Dart 側のデータ供給は実装済み。ネイティブ表示の組み込みは `native_widget_reference/` を参照（Mac 側作業）。
-- 広告で一時的に枠拡張（ボタンのみ「今後実装予定」）
+- （なし）
 
 `_ios_swiftui_reference/` は最初に検討した iOS ネイティブ(SwiftUI)版の参考実装（不使用）。

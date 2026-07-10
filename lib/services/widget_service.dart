@@ -15,6 +15,13 @@ abstract class WidgetService {
   /// ウィジェットの表示内容を更新する。
   Future<void> update({required int todayCount, required List<String> topTitles});
 
+  /// ウィジェットのタップで起動／復帰したときのペイロード。
+  /// 書式は `notification_route.dart` と共通（例: `today`）。
+  Stream<String> get taps;
+
+  /// ウィジェットのタップでアプリが起動した場合のペイロード。
+  Future<String?> initialTapPayload();
+
   static WidgetService create() => impl.createWidgetService();
 }
 
@@ -27,4 +34,10 @@ class StubWidgetService implements WidgetService {
 
   @override
   Future<void> update({required int todayCount, required List<String> topTitles}) async {}
+
+  @override
+  Stream<String> get taps => const Stream<String>.empty();
+
+  @override
+  Future<String?> initialTapPayload() async => null;
 }

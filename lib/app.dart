@@ -41,7 +41,7 @@ class _Gate extends StatefulWidget {
 
 class _GateState extends State<_Gate> with WidgetsBindingObserver {
   Timer? _tick;
-  StreamSubscription<String>? _taps;
+  final List<StreamSubscription<String>> _taps = [];
 
   @override
   void initState() {
@@ -53,12 +53,17 @@ class _GateState extends State<_Gate> with WidgetsBindingObserver {
       if (mounted) context.read<AppState>().runMaintenance();
     });
 
-    final notifier = context.read<AppState>().notifier;
-    _taps = notifier.taps.listen(_handlePayload);
+    // 通知とホーム画面ウィジェットは同じペイロード書式を使うので、
+    // 遷移の扱いも一本にまとめる。
+    final app = context.read<AppState>();
+    _taps.add(app.notifier.taps.listen(_handlePayload));
+    final widgets = app.widgets;
+    if (widgets != null) _taps.add(widgets.taps.listen(_handlePayload));
 
-    // 通知タップでアプリが起動した場合（コールドスタート）。
+    // タップでアプリが起動した場合（コールドスタート）。
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final payload = await notifier.initialTapPayload();
+      final fromNotification = await app.notifier.initialTapPayload();
+      final payload = fromNotification ?? await widgets?.initialTapPayload();
       if (payload != null && mounted) _handlePayload(payload);
     });
   }
@@ -66,7 +71,9 @@ class _GateState extends State<_Gate> with WidgetsBindingObserver {
   @override
   void dispose() {
     _tick?.cancel();
-    _taps?.cancel();
+    for (final s in _taps) {
+      s.cancel();
+    }
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
