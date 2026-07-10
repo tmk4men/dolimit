@@ -27,9 +27,9 @@ class GenreManagementScreen extends StatelessWidget {
             ),
       body: SafeArea(
         child: genres.isEmpty
-            ? const Center(
-                child: Text('＋ でジャンルを作成（最大5個）',
-                    style: TextStyle(color: AppTheme.sub)))
+            ? Center(
+                child: Text('＋ でジャンルを作成（最大${app.genreCap}個）',
+                    style: const TextStyle(color: AppTheme.sub)))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [

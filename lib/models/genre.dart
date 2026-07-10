@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// ジャンル（アプリ全体で最大 5 個・TODAY / LATER 共有）
+/// ジャンル（上限は Limits.genre ＋ Pro ボーナス・TODAY / LATER 共有）
 class Genre {
   final String id;
   String name;

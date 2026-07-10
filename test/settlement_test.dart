@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dolimit/data/store.dart';
 import 'package:dolimit/models/enums.dart';
 import 'package:dolimit/models/task.dart';
+import 'package:dolimit/screens/genre_management_screen.dart';
 import 'package:dolimit/screens/settlement_screen.dart';
 import 'package:dolimit/services/notification_service.dart';
 import 'package:dolimit/state/app_state.dart';
@@ -140,6 +141,27 @@ void main() {
     });
   });
 
+  group('ジャンル管理画面（UI）', () {
+    testWidgets('空状態の上限表示が Pro の実効上限に追随する', (tester) async {
+      final app = await newState();
+
+      Future<void> pump() => tester.pumpWidget(ChangeNotifierProvider<AppState>.value(
+            value: app,
+            child: const MaterialApp(home: GenreManagementScreen()),
+          ));
+
+      await pump();
+      expect(find.text('＋ でジャンルを作成（最大${Limits.genre}個）'), findsOneWidget);
+
+      app.setPro(true);
+      await tester.pumpAndSettle();
+
+      const proCap = Limits.genre + Limits.proBonusGenre;
+      expect(find.text('＋ でジャンルを作成（最大$proCap個）'), findsOneWidget);
+      expect(find.text('ジャンル  0/$proCap'), findsOneWidget);
+    });
+  });
+
   group('自動処理の永続化', () {
     test('自動追放の結果は保存され、読み直しても追放通知は再送されない', () async {
       SharedPreferences.setMockInitialValues({});
@@ -230,6 +252,27 @@ void main() {
       final app = await newState();
       expect(app.addToBox('   '), isFalse);
       expect(app.count(TaskStatus.box), 0);
+    });
+
+    test('空白だけのメモは null として保存される', () async {
+      final app = await newState();
+      app.addToBox('x');
+      final t = byTitle(app, TaskStatus.box, 'x');
+
+      app.setMemo(t, '   ');
+      expect(t.memo, isNull);
+
+      app.setMemo(t, '  買い物リスト  ');
+      expect(t.memo, '買い物リスト');
+    });
+
+    test('version が int でないバックアップは拒否される', () async {
+      final app = await newState();
+      app.addToBox('既存');
+
+      final err = app.importJson('{"version":"2","tasks":[],"genres":[]}');
+      expect(err, isNotNull, reason: '文字列の version は互換性チェックをすり抜けない');
+      expect(app.count(TaskStatus.box), 1, reason: '既存データは壊れない');
     });
 
     test('renameGenre は空名と重複名を拒否する', () async {

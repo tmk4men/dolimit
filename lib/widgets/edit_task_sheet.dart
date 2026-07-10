@@ -66,6 +66,13 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
             child: FilledButton(
               style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
               onPressed: () {
+                // 空欄のまま保存すると setTitle が黙って無視するので、
+                // 「保存した」と誤解させないようここで止める。
+                if (_title.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('タスク名を入力してください')));
+                  return;
+                }
                 final app = context.read<AppState>();
                 app.setTitle(widget.task, _title.text);
                 app.setMemo(widget.task, _memo.text);

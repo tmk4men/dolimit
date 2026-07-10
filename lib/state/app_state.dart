@@ -176,7 +176,8 @@ class AppState extends ChangeNotifier {
   }
 
   void setMemo(TaskItem task, String? memo) {
-    task.memo = (memo == null || memo.isEmpty) ? null : memo;
+    final m = memo?.trim();
+    task.memo = (m == null || m.isEmpty) ? null : m;
     task.updatedAt = DateTime.now();
     _persistAndRefresh();
   }
@@ -483,8 +484,13 @@ class AppState extends ChangeNotifier {
       }
       final map = decoded;
 
-      final version = (map['version'] ?? 1);
-      if (version is int && version > backupVersion) {
+      // version が int 以外なら壊れている。素通しさせると互換性チェックを
+      // すり抜けて未知の形式を読み込んでしまう。
+      final version = map['version'] ?? 1;
+      if (version is! int) {
+        return 'バックアップの形式が正しくありません。';
+      }
+      if (version > backupVersion) {
         return 'より新しいバージョンのバックアップです。アプリを更新してください。';
       }
       if (map['tasks'] is! List || map['genres'] is! List) {
