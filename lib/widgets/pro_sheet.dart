@@ -11,7 +11,10 @@ import 'ui_kit.dart';
 /// 「Proで枠を増やす」導線。購入・復元を行い、成功したら [AppState.setPro] で解除。
 /// 実際のストア購入は [PurchaseService] のスタブを差し替えるまで「準備中」を返す。
 class ProSheet extends StatefulWidget {
-  const ProSheet({super.key});
+  /// テスト用に差し替える。省略時は環境に応じた実装を作る。
+  final PurchaseService? service;
+
+  const ProSheet({super.key, this.service});
 
   static Future<void> present(BuildContext context) {
     return showModalBottomSheet(
@@ -29,8 +32,15 @@ class ProSheet extends StatefulWidget {
 }
 
 class _ProSheetState extends State<ProSheet> {
-  final PurchaseService _purchase = PurchaseService.create();
+  late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
   bool _busy = false;
+
+  @override
+  void dispose() {
+    // 自前で作った実装だけ後始末する。注入されたものは所有していない。
+    if (widget.service == null) _purchase.dispose();
+    super.dispose();
+  }
 
   Future<void> _run(Future<PurchaseResult> Function() action) async {
     if (_busy) return;

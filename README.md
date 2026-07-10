@@ -70,7 +70,9 @@ flutter run -d chrome      # Web で確認
 
 ## TODO / プレースホルダー
 
-- **Pro 課金**: 上限拡張ロジック・導線 UI は実装済み（`ProSheet`）。実際のストア購入（`in_app_purchase`）は未接続で、`PurchaseService` のスタブが「準備中」を返す（debug ビルドでは開発用に Pro 解除ボタンあり）。
+- **Pro 課金**: `in_app_purchase` で実装済み（`StorePurchaseService`）。購入・復元・`completePurchase` まで扱う。
+  **ストア側で非消費型の商品 ID `dolimit_pro` を作成する必要がある**（未作成だと「商品が見つかりません」を返す）。
+  Web では条件付きインポートでスタブに切り替わり「準備中」を返す。debug ビルドでは開発用に Pro 解除ボタンあり。
 - **ホーム画面ウィジェット**: Dart 側のデータ供給は実装済み。ネイティブ表示の組み込みは `native_widget_reference/` を参照（Mac 側作業）。
 - 広告で一時的に枠拡張（ボタンのみ「今後実装予定」）
 
