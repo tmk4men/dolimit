@@ -174,7 +174,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(controller.dispose);
   }
 
   void _deleteAllDialog(BuildContext context, AppState app) {

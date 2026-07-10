@@ -119,7 +119,7 @@ class GenreManagementScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ).whenComplete(controller.dispose);
   }
 
   void _confirmDelete(BuildContext context, AppState app, Genre g) {

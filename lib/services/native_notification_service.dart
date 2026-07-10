@@ -24,8 +24,12 @@ class NativeNotificationService implements NotificationService {
   static const int _idMorning = 1;
   static const int _idMidday = 2;
   static const int _idSettlement = 3;
-  // 即時通知の ID 範囲（ワンショット・貼り替え不要）
+
+  // 即時通知は [1000, 91000) を使う。LATER 予約通知（100000 以上）と
+  // 範囲が重ならないようにして、予約を上書きしないようにする。
   static const int _idInstantBase = 1000;
+  static const int _idInstantSpan = 90000;
+  int _instantSeq = 0;
 
   // LATER リマインドは taskId から安定した正の ID を導出する
   int _laterId(String taskId) => 100000 + (taskId.hashCode & 0x3fffffff);
@@ -178,9 +182,8 @@ class NativeNotificationService implements NotificationService {
 
   Future<void> _showInstant(String title, String body) async {
     await init();
-    // ワンショット。ミリ秒下位を ID にして衝突を避ける（負値回避）。
-    final id = _idInstantBase +
-        (DateTime.now().millisecondsSinceEpoch & 0x00ffffff);
+    // ワンショット。連番を回して直近の通知どうしの衝突だけ避ける。
+    final id = _idInstantBase + (_instantSeq++ % _idInstantSpan);
     await _plugin.show(id, title, body, _details);
   }
 

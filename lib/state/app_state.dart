@@ -44,6 +44,8 @@ class AppState extends ChangeNotifier {
     settings = store.loadSettings();
     runMaintenance();
     await notifier.rescheduleDailyReminders(settings);
+    // 端末再起動で OS 側の予約が消えても、次回起動で貼り直す。
+    _rescheduleLaterReminders();
     notifyListeners();
   }
 
@@ -230,10 +232,20 @@ class AppState extends ChangeNotifier {
     return task.startAt;
   }
 
+  /// LATER の事前通知を貼り直す。開始日のみ指定のタスクは
+  /// [AppSettings.laterAutoMove] を基準時刻に使うため、設定が変わったら
+  /// 予約もやり直す必要がある。
+  void _rescheduleLaterReminders() {
+    for (final t in _tasks.where((t) => t.status == TaskStatus.later)) {
+      _scheduleReminder(t);
+    }
+  }
+
   void _scheduleReminder(TaskItem task) {
     notifier.cancelLaterReminder(task.id);
     final base = effectiveStartDate(task);
-    if (!task.reminderEnabled || base == null) {
+    // 通知を切っているなら予約しない。切っても LATER 通知だけ鳴り続けるのを防ぐ。
+    if (!task.reminderEnabled || base == null || !settings.notificationsEnabled) {
       task.reminderAt = null;
       return;
     }
@@ -430,9 +442,21 @@ class AppState extends ChangeNotifier {
   // ===== 設定 =====
 
   void updateSettings(void Function(AppSettings s) update) {
+    final wasEnabled = settings.notificationsEnabled;
+    final wasAutoMove = settings.laterAutoMove;
+
     update(settings);
     _persistSettings();
     notifier.rescheduleDailyReminders(settings);
+
+    // 通知の ON/OFF と自動移動時刻は、どちらも LATER の事前通知の予約内容を変える。
+    final autoMoveChanged = settings.laterAutoMove.hour != wasAutoMove.hour ||
+        settings.laterAutoMove.minute != wasAutoMove.minute;
+    if (settings.notificationsEnabled != wasEnabled || autoMoveChanged) {
+      _rescheduleLaterReminders();
+      _persistTasks();
+    }
+
     _refreshBadge();
     notifyListeners();
   }
@@ -488,9 +512,14 @@ class AppState extends ChangeNotifier {
       }
 
       // 全て成功したのでまとめて反映。
+      // 置き換えで消えるタスクの予約通知を先に取り消す。放置すると
+      // 存在しないタスクの「まもなく開始」通知が鳴る。
+      _cancelAllLaterReminders();
       _tasks = tasks;
       _genres = genres;
       settings = newSettings;
+      // 取り込んだ LATER タスクの予約を貼り直す。
+      _rescheduleLaterReminders();
       _persistTasks();
       _persistGenres();
       _persistSettings();
@@ -503,12 +532,19 @@ class AppState extends ChangeNotifier {
   }
 
   void deleteAll() {
+    _cancelAllLaterReminders();
     _tasks = [];
     _genres = [];
     _persistTasks();
     _persistGenres();
     _refreshBadge();
     notifyListeners();
+  }
+
+  void _cancelAllLaterReminders() {
+    for (final t in _tasks) {
+      notifier.cancelLaterReminder(t.id);
+    }
   }
 
   // ===== 内部 =====
