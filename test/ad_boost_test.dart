@@ -1,12 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dolimit/data/store.dart';
 import 'package:dolimit/models/enums.dart';
 import 'package:dolimit/services/ad_service.dart';
 import 'package:dolimit/services/notification_service.dart';
+import 'package:dolimit/services/speech_service.dart';
 import 'package:dolimit/state/app_state.dart';
 import 'package:dolimit/util/limits.dart';
+import 'package:dolimit/widgets/add_task_sheet.dart';
 
 /// 任意の結果を返す広告スタブ。
 class FakeAdService implements RewardedAdService {
@@ -173,6 +177,70 @@ void main() {
 
       expect(app.isBoosted, isFalse);
       expect(message, '広告を表示できませんでした');
+    });
+  });
+
+  group('BOX 満杯ダイアログからの導線（UI）', () {
+    Future<void> pumpFullBox(
+        WidgetTester tester, AppState app, FakeAdService ads) async {
+      for (var i = 0; i < Limits.box; i++) {
+        app.addToBox('t$i');
+      }
+      await tester.pumpWidget(MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: app),
+          Provider<RewardedAdService>.value(value: ads),
+          Provider<SpeechService>(create: (_) => const StubSpeechService()),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => AddTaskSheet.present(context),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('満杯だと追加シートではなく警告が出る（上限は実効値）', (tester) async {
+      final app = await newState();
+      await pumpFullBox(tester, app, FakeAdService(const AdResult(AdOutcome.rewarded)));
+
+      expect(find.text('BOXがいっぱいです'), findsOneWidget);
+      expect(find.text('${Limits.box}個たまっています。先に仕分けてください。'), findsOneWidget);
+      expect(find.text('広告で一時的に+${Limits.adBoostBox}'), findsOneWidget);
+    });
+
+    testWidgets('広告を見ると枠が広がり、追加できるようになる', (tester) async {
+      final app = await newState();
+      final ads = FakeAdService(const AdResult(AdOutcome.rewarded));
+      await pumpFullBox(tester, app, ads);
+
+      await tester.tap(find.text('広告で一時的に+${Limits.adBoostBox}'));
+      await tester.pumpAndSettle();
+
+      expect(ads.shown, 1);
+      expect(app.isBoosted, isTrue);
+      expect(find.text('枠を24時間ぶん広げました'), findsOneWidget);
+      expect(app.isFull(TaskStatus.box), isFalse, reason: '空きができた');
+    });
+
+    testWidgets('広告が準備中なら枠は広がらず理由が出る', (tester) async {
+      final app = await newState();
+      final ads = FakeAdService(const AdResult(AdOutcome.unavailable, '広告は準備中です'));
+      await pumpFullBox(tester, app, ads);
+
+      await tester.tap(find.text('広告で一時的に+${Limits.adBoostBox}'));
+      await tester.pumpAndSettle();
+
+      expect(app.isBoosted, isFalse);
+      expect(find.text('広告は準備中です'), findsOneWidget);
+      expect(app.isFull(TaskStatus.box), isTrue);
     });
   });
 

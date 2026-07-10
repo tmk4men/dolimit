@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../screens/settings_screen.dart' show watchAdForBoost;
 import '../services/speech_service.dart';
 import '../state/app_state.dart';
 import '../models/enums.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import 'ad_boost_action.dart';
 import 'pro_sheet.dart';
 import 'ui_kit.dart';
 
