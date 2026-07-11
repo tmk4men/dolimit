@@ -15,7 +15,7 @@ class LaterDetailSheet extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => LaterDetailSheet(task: task),
@@ -85,14 +85,14 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
             const SizedBox(height: 6),
             const Text('LATER 詳細設定', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
-            const Text('LATERは墓場じゃない。未来のTODAY。',
-                style: TextStyle(fontSize: 12, color: AppTheme.sub)),
+            Text('LATERは墓場じゃない。未来のTODAY。',
+                style: TextStyle(fontSize: 12, color: context.c.sub)),
             const SizedBox(height: 12),
 
             // 開始日
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today, color: AppTheme.laterAccent),
+              leading: Icon(Icons.calendar_today, color: context.c.laterAccent),
               title: const Text('開始日'),
               trailing: Text(_date == null ? '未設定' : _fmtDate(_date!),
                   style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -107,7 +107,7 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
             // 開始時刻
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              activeColor: AppTheme.laterAccent,
+              activeColor: context.c.laterAccent,
               value: _timeSpecified,
               onChanged: _date == null ? null : (v) => setState(() => _timeSpecified = v),
               title: const Text('開始時刻も指定'),
@@ -171,7 +171,7 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
             // 自動移動
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              activeColor: AppTheme.laterAccent,
+              activeColor: context.c.laterAccent,
               value: _autoMove,
               onChanged: (v) => setState(() => _autoMove = v),
               title: const Text('開始日にTODAYへ自動移動'),
@@ -181,7 +181,7 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
+                style: FilledButton.styleFrom(backgroundColor: context.c.ink),
                 onPressed: _save,
                 child: const Text('保存'),
               ),

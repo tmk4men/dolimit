@@ -6,7 +6,7 @@ class PressableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets padding;
-  final Color color;
+  final Color? color; // null なら現在テーマのカード色
   final List<BoxShadow> shadow;
   final BorderRadius radius;
   const PressableCard({
@@ -14,7 +14,7 @@ class PressableCard extends StatefulWidget {
     required this.child,
     this.onTap,
     this.padding = const EdgeInsets.all(16),
-    this.color = AppTheme.card,
+    this.color,
     this.shadow = AppTheme.cardShadow,
     this.radius = AppTheme.radiusCard,
   });
@@ -46,7 +46,7 @@ class _PressableCardState extends State<PressableCard> {
           duration: const Duration(milliseconds: 110),
           padding: widget.padding,
           decoration: BoxDecoration(
-            color: widget.color,
+            color: widget.color ?? context.c.card,
             borderRadius: widget.radius,
             boxShadow: _down ? AppTheme.cardShadow.take(1).toList() : widget.shadow,
           ),
@@ -75,12 +75,12 @@ class CapacityBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ratio = capacity == 0 ? 0.0 : (count / capacity).clamp(0.0, 1.0);
     final full = count >= capacity;
-    final fillColor = full ? AppTheme.todayAccent : color;
+    final fillColor = full ? context.c.todayAccent : color;
     return ClipRRect(
       borderRadius: BorderRadius.circular(height),
       child: Stack(
         children: [
-          Container(height: height, color: AppTheme.line),
+          Container(height: height, color: context.c.line),
           LayoutBuilder(
             builder: (_, c) => AnimatedContainer(
               duration: const Duration(milliseconds: 350),
@@ -104,9 +104,9 @@ class ScreenHeader extends StatelessWidget {
   final String title;
   final int count;
   final int capacity;
-  final Color barColor;
+  final Color? barColor;
   final String? caption; // 下の短い一言
-  final Color captionColor;
+  final Color? captionColor;
   final Widget? trailing; // 残り時間など
   final Widget? action; // 右端のメニューなど
   const ScreenHeader({
@@ -114,9 +114,9 @@ class ScreenHeader extends StatelessWidget {
     required this.title,
     required this.count,
     required this.capacity,
-    this.barColor = AppTheme.ink2,
+    this.barColor,
     this.caption,
-    this.captionColor = AppTheme.sub,
+    this.captionColor,
     this.trailing,
     this.action,
   });
@@ -126,6 +126,8 @@ class ScreenHeader extends StatelessWidget {
     final full = count >= capacity;
     // 満杯が近いときだけ「/上限」とバーで警告する。普段は件数だけ見せて軽くする。
     final nearFull = isNearCapacity(count, capacity);
+    final bar = barColor ?? context.c.ink2;
+    final capColor = captionColor ?? context.c.sub;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
       child: Column(
@@ -135,23 +137,23 @@ class ScreenHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
-                      color: AppTheme.ink)),
+                      color: context.c.ink)),
               const SizedBox(width: 10),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: full ? AppTheme.todaySoft : AppTheme.boxSoft,
+                  color: full ? context.c.todaySoft : context.c.boxSoft,
                   borderRadius: AppTheme.radiusPill,
                 ),
                 child: Text(nearFull ? '$count/$capacity' : '$count',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: full ? AppTheme.todayAccent : AppTheme.ink2,
+                        color: full ? context.c.todayAccent : context.c.ink2,
                         fontFeatures: kTabular)),
               ),
               const Spacer(),
@@ -164,11 +166,11 @@ class ScreenHeader extends StatelessWidget {
           ),
           if (nearFull) ...[
             const SizedBox(height: 10),
-            CapacityBar(count: count, capacity: capacity, color: barColor),
+            CapacityBar(count: count, capacity: capacity, color: bar),
           ],
           if (caption != null) ...[
             SizedBox(height: nearFull ? 8 : 10),
-            Text(caption!, style: TextStyle(fontSize: 12.5, color: captionColor)),
+            Text(caption!, style: TextStyle(fontSize: 12.5, color: capColor)),
           ],
         ],
       ),
@@ -215,7 +217,7 @@ class SheetHandle extends StatelessWidget {
         width: 40,
         height: 4,
         margin: const EdgeInsets.only(top: 10, bottom: 6),
-        decoration: BoxDecoration(color: AppTheme.line, borderRadius: BorderRadius.circular(2)),
+        decoration: BoxDecoration(color: context.c.line, borderRadius: BorderRadius.circular(2)),
       ),
     );
   }
@@ -230,8 +232,8 @@ class SectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 22, 4, 8),
       child: Text(text.toUpperCase(),
-          style: const TextStyle(
-              fontSize: 11.5, fontWeight: FontWeight.w800, color: AppTheme.sub, letterSpacing: 1.2)),
+          style: TextStyle(
+              fontSize: 11.5, fontWeight: FontWeight.w800, color: context.c.sub, letterSpacing: 1.2)),
     );
   }
 }
@@ -254,16 +256,16 @@ class EmptyState extends StatelessWidget {
             Container(
               width: 76,
               height: 76,
-              decoration: const BoxDecoration(color: AppTheme.boxSoft, shape: BoxShape.circle),
-              child: Icon(icon, size: 34, color: AppTheme.sub),
+              decoration: BoxDecoration(color: context.c.boxSoft, shape: BoxShape.circle),
+              child: Icon(icon, size: 34, color: context.c.sub),
             ),
             const SizedBox(height: 16),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.ink)),
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: context.c.ink)),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
               Text(subtitle!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, color: AppTheme.sub)),
+                  style: TextStyle(fontSize: 13, color: context.c.sub)),
             ],
           ],
         ),

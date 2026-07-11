@@ -44,7 +44,7 @@ class _LaterScreenState extends State<LaterScreen> {
           title: 'LATER',
           count: all.length,
           capacity: app.capacityFor(TaskStatus.later)!,
-          barColor: AppTheme.laterAccent,
+          barColor: context.c.laterAccent,
           action: const AppMenuButton(),
         ),
         if (showFilter)
@@ -72,11 +72,11 @@ class _LaterScreenState extends State<LaterScreen> {
                           child: Row(
                             children: [
                               Text(g.label,
-                                  style: const TextStyle(
-                                      fontSize: 13, fontWeight: FontWeight.w900, color: AppTheme.ink2, letterSpacing: 0.5)),
+                                  style: TextStyle(
+                                      fontSize: 13, fontWeight: FontWeight.w900, color: context.c.ink2, letterSpacing: 0.5)),
                               const SizedBox(width: 8),
                               Text('${g.tasks.length}',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.sub)),
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: context.c.sub)),
                             ],
                           ),
                         ),
@@ -105,7 +105,7 @@ class _LaterScreenState extends State<LaterScreen> {
       task: task,
       genre: app.genreById(task.genreId),
       subtitle: parts.isEmpty ? '開始日なし' : parts.join('  ·  '),
-      subtitleColor: flagged ? AppTheme.todayAccent : AppTheme.laterAccent,
+      subtitleColor: flagged ? context.c.todayAccent : context.c.laterAccent,
       onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
       onTapBody: () => LaterDetailSheet.present(context, task),
       menu: [

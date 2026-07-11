@@ -116,7 +116,7 @@ class _TodayScreenState extends State<TodayScreen> {
       task: task,
       genre: app.genreById(task.genreId),
       subtitle: subtitle,
-      subtitleColor: stale ? AppTheme.todayAccent : AppTheme.sub,
+      subtitleColor: stale ? context.c.todayAccent : context.c.sub,
       onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
       onTapBody: () => EditTaskSheet.present(context, task),
       menu: [
@@ -161,28 +161,28 @@ class _TodayCleared extends StatelessWidget {
             Container(
               width: 76,
               height: 76,
-              decoration: const BoxDecoration(color: AppTheme.todaySoft, shape: BoxShape.circle),
-              child: const Icon(Icons.check_circle_rounded, size: 38, color: AppTheme.todayAccent),
+              decoration: BoxDecoration(color: context.c.todaySoft, shape: BoxShape.circle),
+              child: Icon(Icons.check_circle_rounded, size: 38, color: context.c.todayAccent),
             ),
             const SizedBox(height: 16),
-            const Text('今日は決着！',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.ink)),
+            Text('今日は決着！',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: context.c.ink)),
             const SizedBox(height: 6),
-            const Text('TODAYを片づけました。おつかれさま。',
+            Text('TODAYを片づけました。おつかれさま。',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppTheme.sub)),
+                style: TextStyle(fontSize: 13, color: context.c.sub)),
             if (streak >= 1) ...[
               const SizedBox(height: 18),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(color: AppTheme.boxSoft, borderRadius: AppTheme.radiusPill),
+                decoration: BoxDecoration(color: context.c.boxSoft, borderRadius: AppTheme.radiusPill),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text('🔥', style: TextStyle(fontSize: 15)),
                     const SizedBox(width: 6),
                     Text('$streak日連続で決着',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.ink2)),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: context.c.ink2)),
                   ],
                 ),
               ),
@@ -203,16 +203,16 @@ class _SettlementButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PressableCard(
       onTap: onTap,
-      color: AppTheme.ink,
+      color: context.c.ink,
       shadow: AppTheme.floatShadow,
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       child: Row(
-        children: const [
-          Icon(Icons.nights_stay_outlined, color: Colors.white, size: 22),
-          SizedBox(width: 12),
-          Text('今日の精算', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
-          Spacer(),
-          Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+        children: [
+          Icon(Icons.nights_stay_outlined, color: context.c.bg, size: 22),
+          const SizedBox(width: 12),
+          Text('今日の精算', style: TextStyle(color: context.c.bg, fontWeight: FontWeight.w800, fontSize: 16)),
+          const Spacer(),
+          Icon(Icons.chevron_right, color: context.c.bg.withOpacity(0.7), size: 20),
         ],
       ),
     );

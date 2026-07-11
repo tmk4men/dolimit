@@ -33,18 +33,18 @@ class SettlementScreen extends StatelessWidget {
         children: [
           Align(
             alignment: Alignment.centerLeft,
-            child: Text('残り $remaining 件', style: const TextStyle(color: AppTheme.sub, fontWeight: FontWeight.w700)),
+            child: Text('残り $remaining 件', style: TextStyle(color: context.c.sub, fontWeight: FontWeight.w700)),
           ),
           const SizedBox(height: 4),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
-            child: Text('残す？戻す？消す？', style: TextStyle(fontSize: 13, color: AppTheme.sub)),
+            child: Text('残す？戻す？消す？', style: TextStyle(fontSize: 13, color: context.c.sub)),
           ),
           const Spacer(),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(color: context.c.card, borderRadius: BorderRadius.circular(24)),
             child: Column(
               children: [
                 Text(task.title,
@@ -53,23 +53,23 @@ class SettlementScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 GenreChip(genre: app.genreById(task.genreId)),
                 const SizedBox(height: 6),
-                Text(task.ageLabel, style: const TextStyle(fontSize: 12, color: AppTheme.sub)),
+                Text(task.ageLabel, style: TextStyle(fontSize: 12, color: context.c.sub)),
               ],
             ),
           ),
           const Spacer(),
-          _btn(context, '明日もTODAY', Icons.wb_sunny, AppTheme.todayAccent, () => app.settleKeepInToday(task)),
+          _btn(context, '明日もTODAY', Icons.wb_sunny, context.c.todayAccent, () => app.settleKeepInToday(task)),
           const SizedBox(height: 10),
-          _btn(context, 'LATERへ移動', Icons.nightlight, AppTheme.laterAccent, () {
+          _btn(context, 'LATERへ移動', Icons.nightlight, context.c.laterAccent, () {
             if (!app.settleMoveToLater(task)) {
               ScaffoldMessenger.of(context)
                   .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.later))));
             }
           }),
           const SizedBox(height: 10),
-          _btn(context, '完了', Icons.check_circle, AppTheme.ink, () => app.complete(task)),
+          _btn(context, '完了', Icons.check_circle, context.c.ink, () => app.complete(task)),
           const SizedBox(height: 10),
-          _btn(context, '削除', Icons.delete, AppTheme.sub, () => app.deleteTask(task)),
+          _btn(context, '削除', Icons.delete, context.c.sub, () => app.deleteTask(task)),
         ],
       ),
     );
@@ -99,15 +99,15 @@ class SettlementScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_outline, size: 56, color: AppTheme.ink),
+            Icon(Icons.check_circle_outline, size: 56, color: context.c.ink),
             const SizedBox(height: 16),
             const Text('精算完了', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
-            const Text('ToDoを溜めるな。今日に決着を。',
-                style: TextStyle(fontSize: 13, color: AppTheme.sub)),
+            Text('ToDoを溜めるな。今日に決着を。',
+                style: TextStyle(fontSize: 13, color: context.c.sub)),
             const SizedBox(height: 24),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
+              style: FilledButton.styleFrom(backgroundColor: context.c.ink),
               onPressed: () => Navigator.pop(context),
               child: const Text('閉じる'),
             ),
