@@ -48,8 +48,8 @@ class SettingsScreen extends StatelessWidget {
                 context, MaterialPageRoute(builder: (_) => const GenreManagementScreen())),
           ),
 
-          // Pro / 広告
-          _section('Pro / 広告'),
+          // Pro / 広告（広告は実装が接続されるまで出さない）
+          _section(adsAvailable(context) ? 'Pro / 広告' : 'Pro'),
           ListTile(
             leading: const Icon(Icons.workspace_premium),
             title: const Text('Proで枠を増やす'),
@@ -57,12 +57,13 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => ProSheet.present(context),
           ),
-          ListTile(
-            leading: const Icon(Icons.ondemand_video),
-            title: const Text('広告で一時的に枠を増やす'),
-            subtitle: Text(adBoostSubtitle(app)),
-            onTap: () => watchAdForBoost(context),
-          ),
+          if (adsAvailable(context))
+            ListTile(
+              leading: const Icon(Icons.ondemand_video),
+              title: const Text('広告で一時的に枠を増やす'),
+              subtitle: Text(adBoostSubtitle(app)),
+              onTap: () => watchAdForBoost(context),
+            ),
         ],
       ),
     );

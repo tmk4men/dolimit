@@ -47,13 +47,15 @@ class AddTaskSheet extends StatefulWidget {
             onPressed: () { Navigator.pop(ctx); onSort?.call(); },
             child: const Text('仕分ける'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              watchAdForBoost(context);
-            },
-            child: Text('広告で一時的に+${Limits.adBoostBox}'),
-          ),
+          // 広告は実装が接続されるまで導線を出さない。
+          if (adsAvailable(context))
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                watchAdForBoost(context);
+              },
+              child: Text('広告で一時的に+${Limits.adBoostBox}'),
+            ),
           TextButton(
             onPressed: () { Navigator.pop(ctx); ProSheet.present(context); },
             child: const Text('Proで枠を増やす'),

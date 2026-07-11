@@ -39,6 +39,14 @@ class AdResult {
 }
 
 abstract class RewardedAdService {
+  /// 広告を配信できる状態か（＝広告実装が接続済みか）。
+  ///
+  /// これが false の間は、広告関連の導線を UI に**一切出さない**
+  /// （「準備中」ではなく、そもそも広告が無い体験にする）。
+  /// AdMob のアプリ ID を入れて実装（`StubRewardedAdService` の差し替え）を
+  /// 接続したら true を返すようにすれば、広告の導線が自動的に現れる。
+  bool get isConfigured;
+
   /// 広告を出せる見込みがあるか。
   Future<bool> isAvailable();
 
@@ -48,9 +56,12 @@ abstract class RewardedAdService {
   static RewardedAdService create() => const StubRewardedAdService();
 }
 
-/// 広告 SDK が未接続の環境。常に「準備中」を返す。
+/// 広告 SDK が未接続の環境。広告の導線は出さない。
 class StubRewardedAdService implements RewardedAdService {
   const StubRewardedAdService();
+
+  @override
+  bool get isConfigured => false;
 
   @override
   Future<bool> isAvailable() async => false;

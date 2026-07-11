@@ -12,11 +12,15 @@ import 'package:dolimit/state/app_state.dart';
 import 'package:dolimit/util/limits.dart';
 import 'package:dolimit/widgets/add_task_sheet.dart';
 
-/// 任意の結果を返す広告スタブ。
+/// 任意の結果を返す広告スタブ。既定では接続済み（導線を出す）扱い。
 class FakeAdService implements RewardedAdService {
-  FakeAdService(this.result);
+  FakeAdService(this.result, {this.configured = true});
   final AdResult result;
+  final bool configured;
   int shown = 0;
+
+  @override
+  bool get isConfigured => configured;
 
   @override
   Future<bool> isAvailable() async => result.outcome != AdOutcome.unavailable;
@@ -216,6 +220,17 @@ void main() {
       expect(find.text('広告で一時的に+${Limits.adBoostBox}'), findsOneWidget);
     });
 
+    testWidgets('広告が未接続なら広告の導線は出ない', (tester) async {
+      final app = await newState();
+      final ads = FakeAdService(const AdResult(AdOutcome.rewarded), configured: false);
+      await pumpFullBox(tester, app, ads);
+
+      expect(find.text('BOXがいっぱいです'), findsOneWidget, reason: '警告自体は出る');
+      expect(find.text('広告で一時的に+${Limits.adBoostBox}'), findsNothing,
+          reason: '広告実装が未接続なら導線を出さない');
+      expect(find.text('Proで枠を増やす'), findsOneWidget, reason: 'Pro の導線は残る');
+    });
+
     testWidgets('広告を見ると枠が広がり、追加できるようになる', (tester) async {
       final app = await newState();
       final ads = FakeAdService(const AdResult(AdOutcome.rewarded));
@@ -247,6 +262,7 @@ void main() {
   group('未接続のスタブ', () {
     test('常に利用不可を返す', () async {
       const ads = StubRewardedAdService();
+      expect(ads.isConfigured, isFalse, reason: '未接続なので導線を出さない');
       expect(await ads.isAvailable(), isFalse);
       final r = await ads.showRewardedAd();
       expect(r.earned, isFalse);
