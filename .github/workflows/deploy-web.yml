@@ -47,6 +47,35 @@ jobs:
           sed -i "s|main.dart.js\"|main.dart.js?v=${V}\"|g" build/web/flutter_bootstrap.js
           sed -i 's|<meta charset="UTF-8">|<meta charset="UTF-8">\n  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">\n  <meta http-equiv="Pragma" content="no-cache">\n  <meta http-equiv="Expires" content="0">|' build/web/index.html
 
+      # 体感速度: CanvasKit(約7MB)＋本体(約3MB)の読込中は白画面になるため、
+      # スピナー付きローディングを出し、Flutter の first-frame で自動的に消す。
+      # 日本語グリフは実行時に gstatic から取得するので preconnect で短縮する。
+      - name: Add loading screen and font preconnect
+        run: |
+          python3 - <<'PY'
+          f = 'build/web/index.html'
+          html = open(f, encoding='utf-8').read()
+          preconnect = ('  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+                        '  <link rel="preconnect" href="https://fonts.googleapis.com">\n')
+          if 'fonts.gstatic.com' not in html:
+              html = html.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + preconnect, 1)
+          loader = (
+            '<style>\n'
+            '#dl-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#F4F5F7;color:#55575F;font-family:-apple-system,system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;z-index:2}\n'
+            '@media (prefers-color-scheme:dark){#dl-loader{background:#0F1013;color:#B7BAC4}}\n'
+            '#dl-loader .s{width:34px;height:34px;border:3px solid rgba(128,128,128,.25);border-top-color:currentColor;border-radius:50%;animation:dl-spin .8s linear infinite;margin-bottom:14px}\n'
+            '@keyframes dl-spin{to{transform:rotate(360deg)}}\n'
+            '</style>\n'
+            '<div id="dl-loader"><div class="s"></div><div>読み込み中…</div></div>\n'
+            "<script>(function(){function d(){var e=document.getElementById('dl-loader');if(e)e.remove();}window.addEventListener('flutter-first-frame',d);setTimeout(d,15000);})();</script>\n"
+          )
+          anchor = '<script src="flutter_bootstrap.js'
+          if 'dl-loader' not in html:
+              html = html.replace(anchor, loader + anchor, 1)
+          open(f, 'w', encoding='utf-8', newline='').write(html)
+          print('loading screen injected')
+          PY
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
