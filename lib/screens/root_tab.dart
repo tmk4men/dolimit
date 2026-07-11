@@ -5,7 +5,6 @@ import '../state/app_navigation.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/ui_kit.dart';
-import 'home_screen.dart';
 import 'box_screen.dart';
 import 'today_screen.dart';
 import 'later_screen.dart';
@@ -23,7 +22,6 @@ class RootTab extends StatelessWidget {
     void goToTab(int i) => nav.goTo(i);
 
     final screens = [
-      HomeScreen(onGoToTab: goToTab),
       const BoxScreen(),
       const TodayScreen(),
       const LaterScreen(),
@@ -41,7 +39,6 @@ class RootTab extends StatelessWidget {
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFE8E8EC),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'BOX'),
           NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: 'TODAY'),
           NavigationDestination(icon: Icon(Icons.nightlight_outlined), selectedIcon: Icon(Icons.nightlight), label: 'LATER'),

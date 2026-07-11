@@ -137,7 +137,7 @@ void main() {
 
       notifier.tap(NotificationPayload.task(t.id));
       await tester.pumpAndSettle();
-      expect(find.text('LATERは墓場じゃない。未来のTODAY。'), findsOneWidget);
+      expect(find.text('歯医者'), findsWidgets, reason: 'LATER タブに移り、タスクが見える');
 
       // TODAY へ動かしてから同じ通知をタップすると TODAY が開く。
       app.move(t, TaskStatus.today);
@@ -177,7 +177,7 @@ void main() {
       await pumpApp(tester, app);
       await tester.pumpAndSettle();
 
-      expect(find.text('LATERは墓場じゃない。未来のTODAY。'), findsOneWidget);
+      expect(find.text('LATERは空です'), findsOneWidget, reason: 'LATER タブが開く');
     });
   });
 }
