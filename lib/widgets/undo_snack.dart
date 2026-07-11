@@ -14,7 +14,6 @@ void showUndoSnack(BuildContext context, String message) {
     duration: const Duration(seconds: 4),
     action: SnackBarAction(
       label: '元に戻す',
-      textColor: Colors.white,
       onPressed: app.undoLast,
     ),
   ));

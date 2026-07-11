@@ -20,11 +20,14 @@ class DoLimitApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.select<AppState, ThemeMode>((s) => s.themeMode);
     return MaterialApp(
       title: 'DoLimit / 今日やる枠',
       debugShowCheckedModeBanner: false,
       navigatorKey: appNavigatorKey,
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
       home: const _Gate(),
     );
   }

@@ -19,8 +19,8 @@ class GenreManagementScreen extends StatelessWidget {
       floatingActionButton: genres.length >= app.genreCap
           ? null
           : FloatingActionButton(
-              backgroundColor: AppTheme.ink,
-              foregroundColor: Colors.white,
+              backgroundColor: context.c.ink,
+              foregroundColor: context.c.bg,
               shape: const CircleBorder(),
               onPressed: () => _editDialog(context, app, null),
               child: const Icon(Icons.add),
@@ -29,13 +29,13 @@ class GenreManagementScreen extends StatelessWidget {
         child: genres.isEmpty
             ? Center(
                 child: Text('＋ でジャンルを作成（最大${app.genreCap}個）',
-                    style: const TextStyle(color: AppTheme.sub)))
+                    style: TextStyle(color: context.c.sub)))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   for (final g in genres)
                     Card(
-                      color: Colors.white,
+                      color: context.c.card,
                       elevation: 0,
                       child: ListTile(
                         leading: Container(
@@ -47,7 +47,7 @@ class GenreManagementScreen extends StatelessWidget {
                           children: [
                             IconButton(icon: const Icon(Icons.edit, size: 20), onPressed: () => _editDialog(context, app, g)),
                             IconButton(
-                                icon: const Icon(Icons.delete, size: 20, color: AppTheme.todayAccent),
+                                icon: Icon(Icons.delete, size: 20, color: context.c.todayAccent),
                                 onPressed: () => _confirmDelete(context, app, g)),
                           ],
                         ),
@@ -85,7 +85,7 @@ class GenreManagementScreen extends StatelessWidget {
                           color: Color(c),
                           shape: BoxShape.circle,
                           border: Border.all(
-                              color: color == c ? AppTheme.ink : Colors.transparent, width: 3),
+                              color: color == c ? context.c.ink : Colors.transparent, width: 3),
                         ),
                       ),
                     ),
@@ -96,7 +96,7 @@ class GenreManagementScreen extends StatelessWidget {
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
+              style: FilledButton.styleFrom(backgroundColor: context.c.ink),
               onPressed: () {
                 if (existing == null) {
                   final err = app.addGenre(controller.text, color);
@@ -132,7 +132,7 @@ class GenreManagementScreen extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
           TextButton(
             onPressed: () { app.deleteGenre(g); Navigator.pop(ctx); },
-            child: const Text('削除', style: TextStyle(color: AppTheme.todayAccent)),
+            child: Text('削除', style: TextStyle(color: context.c.todayAccent)),
           ),
         ],
       ),

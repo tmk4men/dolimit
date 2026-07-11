@@ -23,9 +23,9 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
           // 通知
-          _section('通知'),
+          _section(context, '通知'),
           SwitchListTile(
-            activeColor: AppTheme.ink,
+            activeColor: context.c.ink,
             value: s.notificationsEnabled,
             onChanged: (v) async {
               if (v) await app.notifier.requestPermission();
@@ -39,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
           _timeTile(context, app, 'LATER自動移動', s.laterAutoMove, (t) => s.laterAutoMove = t),
 
           // ジャンル
-          _section('ジャンル'),
+          _section(context, 'ジャンル'),
           ListTile(
             leading: const Icon(Icons.tag),
             title: const Text('ジャンル管理'),
@@ -48,8 +48,24 @@ class SettingsScreen extends StatelessWidget {
                 context, MaterialPageRoute(builder: (_) => const GenreManagementScreen())),
           ),
 
+          // 外観（システム / ライト / ダーク）
+          _section(context, '外観'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+            child: SegmentedButton<String>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(value: 'system', label: Text('システム')),
+                ButtonSegment(value: 'light', label: Text('ライト')),
+                ButtonSegment(value: 'dark', label: Text('ダーク')),
+              ],
+              selected: {s.appearance},
+              onSelectionChanged: (sel) => app.setAppearance(sel.first),
+            ),
+          ),
+
           // Pro / 広告（広告は実装が接続されるまで出さない）
-          _section(adsAvailable(context) ? 'Pro / 広告' : 'Pro'),
+          _section(context, adsAvailable(context) ? 'Pro / 広告' : 'Pro'),
           ListTile(
             leading: const Icon(Icons.workspace_premium),
             title: const Text('Proで枠を増やす'),
@@ -69,10 +85,10 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _section(String title) => Padding(
+  Widget _section(BuildContext context, String title) => Padding(
         padding: const EdgeInsets.fromLTRB(4, 20, 4, 6),
         child: Text(title,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.sub, letterSpacing: 1)),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: context.c.sub, letterSpacing: 1)),
       );
 
   Widget _timeTile(BuildContext context, AppState app, String label, TimeOfDayPref pref,

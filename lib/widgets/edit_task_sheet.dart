@@ -14,7 +14,7 @@ class EditTaskSheet extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => EditTaskSheet(task: task),
@@ -64,7 +64,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppTheme.ink),
+              style: FilledButton.styleFrom(backgroundColor: context.c.ink),
               onPressed: () {
                 // 空欄のまま保存すると setTitle が黙って無視するので、
                 // 「保存した」と誤解させないようここで止める。

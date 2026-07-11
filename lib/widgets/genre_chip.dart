@@ -79,15 +79,15 @@ class GenreFilterBar extends StatelessWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _chip('すべて', const FilterAll()),
-          _chip('ジャンルなし', const FilterNone()),
-          for (final g in genres) _chip(g.name, FilterGenre(g.id), dot: g.color),
+          _chip(context, 'すべて', const FilterAll()),
+          _chip(context, 'ジャンルなし', const FilterNone()),
+          for (final g in genres) _chip(context, g.name, FilterGenre(g.id), dot: g.color),
         ],
       ),
     );
   }
 
-  Widget _chip(String label, GenreFilter value, {Color? dot}) {
+  Widget _chip(BuildContext context, String label, GenreFilter value, {Color? dot}) {
     final active = selection == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -97,9 +97,9 @@ class GenreFilterBar extends StatelessWidget {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: active ? AppTheme.ink : Colors.white,
+            color: active ? context.c.ink : context.c.card,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: active ? AppTheme.ink : AppTheme.line),
+            border: Border.all(color: active ? context.c.ink : context.c.line),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -112,7 +112,7 @@ class GenreFilterBar extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: active ? Colors.white : AppTheme.ink2)),
+                      color: active ? context.c.bg : context.c.ink2)),
             ],
           ),
         ),

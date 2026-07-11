@@ -36,8 +36,8 @@ class RootTab extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: nav.tab,
         onDestinationSelected: goToTab,
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFE8E8EC),
+        backgroundColor: context.c.card,
+        indicatorColor: context.c.boxSoft,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'BOX'),
           NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: 'TODAY'),
@@ -59,11 +59,11 @@ class _Fab extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6, right: 4),
       child: PressableCard(
         onTap: onTap,
-        color: AppTheme.ink,
+        color: context.c.ink,
         shadow: AppTheme.floatShadow,
         radius: const BorderRadius.all(Radius.circular(20)),
         padding: const EdgeInsets.all(17),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 30),
+        child: Icon(Icons.add_rounded, color: context.c.bg, size: 30),
       ),
     );
   }

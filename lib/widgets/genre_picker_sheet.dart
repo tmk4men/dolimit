@@ -13,7 +13,7 @@ class GenrePickerSheet extends StatelessWidget {
   static Future<void> present(BuildContext context, TaskItem task) {
     return showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => GenrePickerSheet(task: task),
@@ -43,10 +43,10 @@ class GenrePickerSheet extends StatelessWidget {
               Navigator.pop(context);
             }),
           if (genres.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16),
               child: Text('ジャンルは Settings で作成できます。',
-                  style: TextStyle(fontSize: 13, color: AppTheme.sub)),
+                  style: TextStyle(fontSize: 13, color: context.c.sub)),
             ),
           const SizedBox(height: 12),
         ],
@@ -59,9 +59,9 @@ class GenrePickerSheet extends StatelessWidget {
     return ListTile(
       leading: dot != null
           ? Container(width: 14, height: 14, decoration: BoxDecoration(color: dot, shape: BoxShape.circle))
-          : const Icon(Icons.block, color: AppTheme.sub, size: 18),
+          : Icon(Icons.block, color: context.c.sub, size: 18),
       title: Text(label),
-      trailing: selected ? const Icon(Icons.check, color: AppTheme.ink) : null,
+      trailing: selected ? Icon(Icons.check, color: context.c.ink) : null,
       onTap: onTap,
     );
   }

@@ -53,9 +53,9 @@ class BoxScreen extends StatelessWidget {
       key: ValueKey(task.id),
       movementDuration: const Duration(milliseconds: 220),
       // 右スワイプ = TODAY（赤）
-      background: _bg(Alignment.centerLeft, AppTheme.todayAccent, Icons.wb_sunny_rounded, 'TODAY'),
+      background: _bg(Alignment.centerLeft, context.c.todayAccent, Icons.wb_sunny_rounded, 'TODAY'),
       // 左スワイプ = LATER（青）
-      secondaryBackground: _bg(Alignment.centerRight, AppTheme.laterAccent, Icons.nightlight_round, 'LATER', reverse: true),
+      secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, Icons.nightlight_round, 'LATER', reverse: true),
       confirmDismiss: (dir) async {
         final target = dir == DismissDirection.startToEnd ? TaskStatus.today : TaskStatus.later;
         final ok = app.move(task, target);
