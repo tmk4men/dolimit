@@ -11,7 +11,7 @@ class AppMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.menu_rounded, color: AppTheme.ink),
+      icon: Icon(Icons.menu_rounded, color: context.c.ink),
       tooltip: 'メニュー',
       position: PopupMenuPosition.under,
       onSelected: (value) {
@@ -22,14 +22,14 @@ class AppMenuButton extends StatelessWidget {
           );
         }
       },
-      itemBuilder: (_) => const [
+      itemBuilder: (_) => [
         PopupMenuItem<String>(
           value: 'settings',
           child: Row(
             children: [
-              Icon(Icons.settings_outlined, size: 20, color: AppTheme.ink),
-              SizedBox(width: 12),
-              Text('設定'),
+              Icon(Icons.settings_outlined, size: 20, color: context.c.ink),
+              const SizedBox(width: 12),
+              const Text('設定'),
             ],
           ),
         ),

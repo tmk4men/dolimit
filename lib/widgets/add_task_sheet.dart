@@ -28,7 +28,7 @@ class AddTaskSheet extends StatefulWidget {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const AddTaskSheet(),
@@ -180,7 +180,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   decoration: InputDecoration(
                     hintText: 'やることを入力',
                     filled: true,
-                    fillColor: AppTheme.fill,
+                    fillColor: context.c.fill,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -195,13 +195,15 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                   width: 52, height: 52,
                   decoration: BoxDecoration(
                     color: _listening
-                        ? AppTheme.todayAccent
-                        : (_usedVoice ? AppTheme.ink : AppTheme.fill),
+                        ? context.c.todayAccent
+                        : (_usedVoice ? context.c.ink : context.c.fill),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     _listening ? Icons.stop_rounded : Icons.mic_none_rounded,
-                    color: (_listening || _usedVoice) ? Colors.white : AppTheme.ink2,
+                    color: _listening
+                        ? Colors.white
+                        : (_usedVoice ? context.c.bg : context.c.ink2),
                   ),
                 ),
               ),
@@ -215,7 +217,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
             style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: _listening ? FontWeight.w700 : FontWeight.w400,
-                color: _listening ? AppTheme.todayAccent : AppTheme.sub),
+                color: _listening ? context.c.todayAccent : context.c.sub),
           ),
           const SizedBox(height: 18),
           SizedBox(
@@ -223,7 +225,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
             height: 52,
             child: FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.ink,
+                backgroundColor: context.c.ink,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               onPressed: _add,

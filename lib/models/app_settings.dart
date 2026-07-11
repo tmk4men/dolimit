@@ -32,6 +32,9 @@ class AppSettings {
   /// 最後に「決着」した日（当日の 0:00）。null なら未達成。
   DateTime? lastClearedDay;
 
+  /// 外観テーマ。'system' | 'light' | 'dark'。
+  String appearance;
+
   AppSettings({
     this.notificationsEnabled = true,
     this.badgeEnabled = true,
@@ -44,6 +47,7 @@ class AppSettings {
     this.laterAutoMove = const TimeOfDayPref(7, 0),
     this.streak = 0,
     this.lastClearedDay,
+    this.appearance = 'system',
   });
 
   Map<String, dynamic> toJson() => {
@@ -58,6 +62,7 @@ class AppSettings {
         'laterAutoMove': laterAutoMove.toJson(),
         'streak': streak,
         'lastClearedDay': lastClearedDay?.toIso8601String(),
+        'appearance': appearance,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -84,5 +89,6 @@ class AppSettings {
         lastClearedDay: j['lastClearedDay'] == null
             ? null
             : DateTime.parse(j['lastClearedDay'] as String),
+        appearance: (j['appearance'] ?? 'system') as String,
       );
 }

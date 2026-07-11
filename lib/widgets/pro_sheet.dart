@@ -20,7 +20,7 @@ class ProSheet extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const ProSheet(),
@@ -72,7 +72,7 @@ class _ProSheetState extends State<ProSheet> {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.workspace_premium, color: AppTheme.ink),
+              Icon(Icons.workspace_premium, color: context.c.ink),
               const SizedBox(width: 8),
               const Text('Proで枠を増やす',
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
@@ -81,7 +81,7 @@ class _ProSheetState extends State<ProSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                      color: AppTheme.ink, borderRadius: AppTheme.radiusPill),
+                      color: context.c.ink, borderRadius: AppTheme.radiusPill),
                   child: const Text('解除済み',
                       style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
                 ),
@@ -99,7 +99,7 @@ class _ProSheetState extends State<ProSheet> {
               height: 52,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppTheme.ink,
+                  backgroundColor: context.c.ink,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: _busy ? null : () => _run(_purchase.buyPro),
@@ -125,16 +125,16 @@ class _ProSheetState extends State<ProSheet> {
                     context.read<AppState>().setPro(true);
                     Navigator.pop(context);
                   },
-                  child: const Text('開発用: Proを解除（debug）',
-                      style: TextStyle(color: AppTheme.sub)),
+                  child: Text('開発用: Proを解除（debug）',
+                      style: TextStyle(color: context.c.sub)),
                 ),
               ),
           ] else if (kDebugMode)
             Center(
               child: TextButton(
                 onPressed: () => context.read<AppState>().setPro(false),
-                child: const Text('開発用: Pro を解除して戻す（debug）',
-                    style: TextStyle(color: AppTheme.sub)),
+                child: Text('開発用: Pro を解除して戻す（debug）',
+                    style: TextStyle(color: context.c.sub)),
               ),
             ),
         ],
@@ -150,15 +150,15 @@ class _ProSheetState extends State<ProSheet> {
           SizedBox(
             width: 84,
             child: Text(label,
-                style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.ink2)),
+                style: TextStyle(fontWeight: FontWeight.w800, color: context.c.ink2)),
           ),
-          Text('$base', style: const TextStyle(color: AppTheme.sub)),
-          const Padding(
+          Text('$base', style: TextStyle(color: context.c.sub)),
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Icon(Icons.arrow_forward_rounded, size: 16, color: AppTheme.sub),
+            child: Icon(Icons.arrow_forward_rounded, size: 16, color: context.c.sub),
           ),
           Text('$pro',
-              style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.ink)),
+              style: TextStyle(fontWeight: FontWeight.w900, color: context.c.ink)),
         ],
       ),
     );

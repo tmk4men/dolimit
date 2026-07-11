@@ -84,6 +84,20 @@ class AppState extends ChangeNotifier {
   /// 直前の操作を取り消せる状態か。
   bool get canUndo => _undoSnapshot != null;
 
+  /// 外観テーマ（system / light / dark）。
+  ThemeMode get themeMode => switch (settings.appearance) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+
+  void setAppearance(String value) {
+    if (settings.appearance == value) return;
+    settings.appearance = value;
+    _persistSettings();
+    notifyListeners();
+  }
+
   List<Genre> get genres {
     final g = [..._genres];
     g.sort((a, b) => a.createdAt.compareTo(b.createdAt));

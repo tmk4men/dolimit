@@ -36,7 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.c.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -64,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: i == _page ? 20 : 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: i == _page ? AppTheme.ink : AppTheme.line,
+                      color: i == _page ? context.c.ink : context.c.line,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );
@@ -87,12 +87,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
-          const Text('BOXに入れて、左右に仕分けるだけ。',
-              style: TextStyle(fontSize: 15, color: AppTheme.sub)),
+          Text('BOXに入れて、左右に仕分けるだけ。',
+              style: TextStyle(fontSize: 15, color: context.c.sub)),
           const SizedBox(height: 40),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
+                backgroundColor: context.c.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
             onPressed: _next,
             child: const Text('試してみる'),
           ),
@@ -110,18 +110,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _boxRow('BOX', Limits.box, AppTheme.boxAccent),
+          _boxRow('BOX', Limits.box, context.c.boxAccent),
           const SizedBox(height: 12),
-          _boxRow('TODAY', Limits.today, AppTheme.todayAccent),
+          _boxRow('TODAY', Limits.today, context.c.todayAccent),
           const SizedBox(height: 12),
-          _boxRow('LATER', Limits.later, AppTheme.laterAccent),
+          _boxRow('LATER', Limits.later, context.c.laterAccent),
           const SizedBox(height: 28),
-          const Text('溜めすぎないための上限です。',
-              style: TextStyle(fontSize: 14, color: AppTheme.sub)),
+          Text('溜めすぎないための上限です。',
+              style: TextStyle(fontSize: 14, color: context.c.sub)),
           const SizedBox(height: 36),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
+                backgroundColor: context.c.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
             onPressed: _next,
             child: const Text('次へ'),
           ),
@@ -152,18 +152,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.notifications_active_outlined, size: 56, color: AppTheme.ink),
+          Icon(Icons.notifications_active_outlined, size: 56, color: context.c.ink),
           const SizedBox(height: 20),
           const Text('TODAYの数を表示します',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
-          const Text('忘れないために、バッジと通知を使います。',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: AppTheme.sub)),
+          Text('忘れないために、バッジと通知を使います。',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: context.c.sub)),
           const SizedBox(height: 36),
           FilledButton(
             style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
+                backgroundColor: context.c.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
             onPressed: () => _finish(requestPermission: true),
             child: const Text('通知を許可する'),
           ),
@@ -201,9 +201,9 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
           // ヒント
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('← LATER', style: TextStyle(color: AppTheme.laterAccent, fontWeight: FontWeight.w700)),
-              Text('TODAY →', style: TextStyle(color: AppTheme.todayAccent, fontWeight: FontWeight.w700)),
+            children: [
+              Text('← LATER', style: TextStyle(color: context.c.laterAccent, fontWeight: FontWeight.w700)),
+              Text('TODAY →', style: TextStyle(color: context.c.todayAccent, fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 20),
@@ -217,8 +217,8 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
                         for (final s in _samples.take(1))
                           Dismissible(
                             key: ValueKey(s),
-                            background: _bg(Alignment.centerLeft, AppTheme.todayAccent, 'TODAY →'),
-                            secondaryBackground: _bg(Alignment.centerRight, AppTheme.laterAccent, '← LATER'),
+                            background: _bg(Alignment.centerLeft, context.c.todayAccent, 'TODAY →'),
+                            secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, '← LATER'),
                             onDismissed: (dir) {
                               setState(() {
                                 _feedback = dir == DismissDirection.startToEnd ? 'TODAYへ' : 'LATERへ';
@@ -246,13 +246,13 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.swipe, size: 40, color: AppTheme.sub),
+        Icon(Icons.swipe, size: 40, color: context.c.sub),
         const SizedBox(height: 12),
         const Text('その調子。', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 24),
         FilledButton(
           style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
+              backgroundColor: context.c.ink, padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14)),
           onPressed: () {
             // 次のページへスクロール
             final state = context.findAncestorStateOfType<_OnboardingScreenState>();
@@ -269,9 +269,9 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.c.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.line),
+        border: Border.all(color: context.c.line),
         boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4))],
       ),
       child: Text(title,

@@ -34,8 +34,8 @@ class _RemainingTimeState extends State<RemainingTime> {
   @override
   Widget build(BuildContext context) {
     final hours = DayClock.remainingHours();
-    final color = AppTheme.remainingColor(hours);
-    final soft = AppTheme.remainingSoft(hours);
+    final color = AppTheme.remainingColor(hours, context.c);
+    final soft = AppTheme.remainingSoft(hours, context.c);
 
     final content = Row(
       mainAxisSize: MainAxisSize.min,
