@@ -617,7 +617,8 @@ class AppState extends ChangeNotifier {
   }
 
   void _refreshBadge() {
-    notifier.applyBadge(todayUnfinished, enabled: settings.badgeEnabled);
+    // バッジは常時ON（設定で消せない仕様）。
+    notifier.applyBadge(todayUnfinished, enabled: true);
     _refreshWidget();
   }
 

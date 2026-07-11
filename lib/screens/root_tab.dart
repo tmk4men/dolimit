@@ -9,7 +9,6 @@ import 'home_screen.dart';
 import 'box_screen.dart';
 import 'today_screen.dart';
 import 'later_screen.dart';
-import 'settings_screen.dart';
 
 /// 下部タブ + 全画面共通 FAB（＋）
 ///
@@ -28,7 +27,6 @@ class RootTab extends StatelessWidget {
       const BoxScreen(),
       const TodayScreen(),
       const LaterScreen(),
-      const SettingsScreen(),
     ];
 
     return Scaffold(
@@ -47,7 +45,6 @@ class RootTab extends StatelessWidget {
           NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'BOX'),
           NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: 'TODAY'),
           NavigationDestination(icon: Icon(Icons.nightlight_outlined), selectedIcon: Icon(Icons.nightlight), label: 'LATER'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );

@@ -86,7 +86,12 @@ void main() {
       addTearDown(notifier.dispose);
       await pumpApp(tester, app);
 
-      expect(find.text('今日'), findsOneWidget, reason: '最初は Home');
+      // 起動直後は TODAY タブ。別タブへ移ってから today で戻れることを確認する。
+      expect(find.text('TODAYは空です'), findsOneWidget, reason: '最初は TODAY');
+
+      notifier.tap(NotificationPayload.box);
+      await tester.pumpAndSettle();
+      expect(find.text('BOXは空です'), findsOneWidget);
 
       notifier.tap(NotificationPayload.today);
       await tester.pumpAndSettle();
@@ -116,10 +121,10 @@ void main() {
       notifier.tap(NotificationPayload.settlement);
       await tester.pumpAndSettle();
 
-      // 1 枚だけ積まれている。戻れば Home に着く。
+      // 1 枚だけ積まれている。戻れば TODAY タブに着く。
       Navigator.of(appNavigatorKey.currentContext!).pop();
       await tester.pumpAndSettle();
-      expect(find.text('今日'), findsOneWidget);
+      expect(find.text('TODAYは空です'), findsOneWidget);
     });
 
     testWidgets('task ペイロードは今の status のタブを開く', (tester) async {
@@ -150,7 +155,7 @@ void main() {
       notifier.tap(NotificationPayload.task('missing-id'));
       await tester.pumpAndSettle();
 
-      expect(find.text('今日'), findsOneWidget, reason: 'Home のまま');
+      expect(find.text('TODAYは空です'), findsOneWidget, reason: 'TODAY のまま');
     });
 
     testWidgets('オンボーディング未完了なら遷移しない', (tester) async {

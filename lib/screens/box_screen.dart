@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import '../widgets/app_menu_button.dart';
 import '../widgets/task_card.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
@@ -27,6 +28,7 @@ class BoxScreen extends StatelessWidget {
           title: 'BOX',
           count: tasks.length,
           capacity: app.capacityFor(TaskStatus.box)!,
+          action: const AppMenuButton(),
         ),
         // スワイプ説明（常に薄く表示）
         const Padding(

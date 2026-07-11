@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import '../widgets/app_menu_button.dart';
 import '../widgets/remaining_time.dart';
 import '../widgets/task_card.dart';
 import '../widgets/genre_chip.dart';
@@ -39,6 +40,7 @@ class _TodayScreenState extends State<TodayScreen> {
           count: all.length,
           capacity: app.capacityFor(TaskStatus.today)!,
           trailing: const RemainingTime(fontSize: 14),
+          action: const AppMenuButton(),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
