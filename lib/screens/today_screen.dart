@@ -13,6 +13,7 @@ import '../widgets/genre_chip.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
+import '../widgets/undo_snack.dart';
 import 'settlement_screen.dart';
 
 /// 今日やるタスク。並び替え（Drag & Drop）対応。
@@ -66,10 +67,19 @@ class _TodayScreenState extends State<TodayScreen> {
           ),
         Expanded(
           child: tasks.isEmpty
-              ? const EmptyState(
-                  icon: Icons.wb_sunny_outlined,
-                  title: 'TODAYは空です',
-                  subtitle: 'BOXから仕分けましょう。')
+              ? (all.isEmpty
+                  ? (app.clearedToday
+                      // 今日ぶんを片づけ切った達成の演出。
+                      ? _TodayCleared(streak: app.currentStreak)
+                      : const EmptyState(
+                          icon: Icons.wb_sunny_outlined,
+                          title: 'TODAYは空です',
+                          subtitle: 'BOXから仕分けましょう。'))
+                  // フィルタで該当が無いだけ（TODAY自体は空でない）。
+                  : const EmptyState(
+                      icon: Icons.filter_list_off,
+                      title: '該当なし',
+                      subtitle: '別のジャンルを選んでください。'))
               : (canReorder
                   ? ReorderableListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 130),
@@ -107,18 +117,21 @@ class _TodayScreenState extends State<TodayScreen> {
       genre: app.genreById(task.genreId),
       subtitle: subtitle,
       subtitleColor: stale ? AppTheme.todayAccent : AppTheme.sub,
-      onToggle: () => app.complete(task),
+      onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
       onTapBody: () => EditTaskSheet.present(context, task),
       menu: [
         TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
         TaskMenuAction('ジャンル変更', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
         TaskMenuAction('LATERへ移動', Icons.nightlight_outlined, () {
-          if (!app.move(task, TaskStatus.later)) {
+          if (app.move(task, TaskStatus.later)) {
+            showUndoSnack(context, 'LATERへ移動しました');
+          } else {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.later))));
           }
         }),
-        TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
+        TaskMenuAction('削除', Icons.delete_outline,
+            () { app.deleteTask(task); showUndoSnack(context, '削除しました'); }, destructive: true),
       ],
     );
   }
@@ -129,6 +142,55 @@ class _TodayScreenState extends State<TodayScreen> {
     final s = app.settings.settlement;
     final at = DateTime(now.year, now.month, now.day, s.hour, s.minute);
     return !now.isBefore(at);
+  }
+}
+
+/// TODAY を今日ぶん片づけ切ったときの達成表示。連続日数（ストリーク）も見せる。
+class _TodayCleared extends StatelessWidget {
+  final int streak;
+  const _TodayCleared({required this.streak});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: const BoxDecoration(color: AppTheme.todaySoft, shape: BoxShape.circle),
+              child: const Icon(Icons.check_circle_rounded, size: 38, color: AppTheme.todayAccent),
+            ),
+            const SizedBox(height: 16),
+            const Text('今日は決着！',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.ink)),
+            const SizedBox(height: 6),
+            const Text('TODAYを片づけました。おつかれさま。',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppTheme.sub)),
+            if (streak >= 1) ...[
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(color: AppTheme.boxSoft, borderRadius: AppTheme.radiusPill),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🔥', style: TextStyle(fontSize: 15)),
+                    const SizedBox(width: 6),
+                    Text('$streak日連続で決着',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.ink2)),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 
