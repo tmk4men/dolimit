@@ -124,6 +124,8 @@ class ScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final full = count >= capacity;
+    // 満杯が近いときだけ「/上限」とバーで警告する。普段は件数だけ見せて軽くする。
+    final nearFull = isNearCapacity(count, capacity);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
       child: Column(
@@ -145,7 +147,7 @@ class ScreenHeader extends StatelessWidget {
                   color: full ? AppTheme.todaySoft : AppTheme.boxSoft,
                   borderRadius: AppTheme.radiusPill,
                 ),
-                child: Text('$count/$capacity',
+                child: Text(nearFull ? '$count/$capacity' : '$count',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -160,10 +162,12 @@ class ScreenHeader extends StatelessWidget {
               ],
             ],
           ),
-          const SizedBox(height: 10),
-          CapacityBar(count: count, capacity: capacity, color: barColor),
+          if (nearFull) ...[
+            const SizedBox(height: 10),
+            CapacityBar(count: count, capacity: capacity, color: barColor),
+          ],
           if (caption != null) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: nearFull ? 8 : 10),
             Text(caption!, style: TextStyle(fontSize: 12.5, color: captionColor)),
           ],
         ],
@@ -171,6 +175,11 @@ class ScreenHeader extends StatelessWidget {
     );
   }
 }
+
+/// 満杯が近いか（上限の 80% 以上）。普段は件数だけ、近づいたらバー＋色で警告する
+/// 判断に共通で使う。
+bool isNearCapacity(int count, int capacity) =>
+    capacity > 0 && count / capacity >= 0.8;
 
 /// 小さなラベルピル
 class AccentPill extends StatelessWidget {

@@ -30,11 +30,6 @@ class BoxScreen extends StatelessWidget {
           capacity: app.capacityFor(TaskStatus.box)!,
           action: const AppMenuButton(),
         ),
-        // スワイプ説明（常に薄く表示）
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 2, 20, 6),
-          child: _SwipeHint(),
-        ),
         Expanded(
           child: tasks.isEmpty
               ? const EmptyState(
@@ -109,25 +104,3 @@ class BoxScreen extends StatelessWidget {
   }
 }
 
-class _SwipeHint extends StatelessWidget {
-  const _SwipeHint();
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Row(children: [
-          Icon(Icons.west_rounded, size: 15, color: AppTheme.laterAccent),
-          SizedBox(width: 5),
-          Text('LATER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.laterAccent)),
-        ]),
-        Text('スワイプで仕分け', style: TextStyle(fontSize: 11.5, color: AppTheme.sub, fontWeight: FontWeight.w600)),
-        Row(children: [
-          Text('TODAY', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.todayAccent)),
-          SizedBox(width: 5),
-          Icon(Icons.east_rounded, size: 15, color: AppTheme.todayAccent),
-        ]),
-      ],
-    );
-  }
-}

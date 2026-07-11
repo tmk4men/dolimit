@@ -13,6 +13,7 @@ import '../widgets/genre_chip.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
+import 'settlement_screen.dart';
 
 /// 今日やるタスク。並び替え（Drag & Drop）対応。
 class TodayScreen extends StatefulWidget {
@@ -29,8 +30,11 @@ class _TodayScreenState extends State<TodayScreen> {
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     final all = app.tasksIn(TaskStatus.today);
-    final tasks = all.where((t) => _filter.matches(t.genreId)).toList();
-    final canReorder = _filter is FilterAll;
+    // ジャンルが2個以上あるときだけフィルタを出す（使わない人には見せない）。
+    final showFilter = app.genres.length >= 2;
+    final filter = showFilter ? _filter : const FilterAll();
+    final tasks = all.where((t) => filter.matches(t.genreId)).toList();
+    final canReorder = filter is FilterAll;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,14 +46,24 @@ class _TodayScreenState extends State<TodayScreen> {
           trailing: const RemainingTime(fontSize: 14),
           action: const AppMenuButton(),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: GenreFilterBar(
-            genres: app.genres,
-            selection: _filter,
-            onSelect: (f) => setState(() => _filter = f),
+        // 今日の精算：夜の精算に設定した時刻を過ぎたら TODAY のトップに出す。
+        if (_afterSettlementTime(app))
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+            child: _SettlementButton(
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const SettlementScreen())),
+            ),
           ),
-        ),
+        if (showFilter)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: GenreFilterBar(
+              genres: app.genres,
+              selection: _filter,
+              onSelect: (f) => setState(() => _filter = f),
+            ),
+          ),
         Expanded(
           child: tasks.isEmpty
               ? const EmptyState(
@@ -106,6 +120,39 @@ class _TodayScreenState extends State<TodayScreen> {
         }),
         TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
       ],
+    );
+  }
+
+  /// 夜の精算に設定した時刻を今日すでに過ぎているか。
+  bool _afterSettlementTime(AppState app) {
+    final now = DateTime.now();
+    final s = app.settings.settlement;
+    final at = DateTime(now.year, now.month, now.day, s.hour, s.minute);
+    return !now.isBefore(at);
+  }
+}
+
+/// 「今日の精算」への導線。夜の精算時刻以降に TODAY のトップへ出す。
+class _SettlementButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SettlementButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return PressableCard(
+      onTap: onTap,
+      color: AppTheme.ink,
+      shadow: AppTheme.floatShadow,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      child: Row(
+        children: const [
+          Icon(Icons.nights_stay_outlined, color: Colors.white, size: 22),
+          SizedBox(width: 12),
+          Text('今日の精算', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+          Spacer(),
+          Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+        ],
+      ),
     );
   }
 }

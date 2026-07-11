@@ -30,7 +30,10 @@ class _LaterScreenState extends State<LaterScreen> {
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     final all = app.tasksIn(TaskStatus.later);
-    final tasks = all.where((t) => _filter.matches(t.genreId)).toList();
+    // ジャンルが2個以上あるときだけフィルタを出す。
+    final showFilter = app.genres.length >= 2;
+    final filter = showFilter ? _filter : const FilterAll();
+    final tasks = all.where((t) => filter.matches(t.genreId)).toList();
     final groups = _group(app, tasks);
 
     return Column(
@@ -41,18 +44,17 @@ class _LaterScreenState extends State<LaterScreen> {
           count: all.length,
           capacity: app.capacityFor(TaskStatus.later)!,
           barColor: AppTheme.laterAccent,
-          caption: 'LATERは墓場じゃない。未来のTODAY。',
-          captionColor: AppTheme.laterAccent,
           action: const AppMenuButton(),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-          child: GenreFilterBar(
-            genres: app.genres,
-            selection: _filter,
-            onSelect: (f) => setState(() => _filter = f),
+        if (showFilter)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+            child: GenreFilterBar(
+              genres: app.genres,
+              selection: _filter,
+              onSelect: (f) => setState(() => _filter = f),
+            ),
           ),
-        ),
         Expanded(
           child: tasks.isEmpty
               ? const EmptyState(
