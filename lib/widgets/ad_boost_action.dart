@@ -4,6 +4,11 @@ import 'package:provider/provider.dart';
 import '../services/ad_service.dart';
 import '../state/app_state.dart';
 
+/// 広告の導線を UI に出してよいか（広告実装が接続済みか）。
+/// 未接続の間は広告関連のボタン・項目を出さない（＝広告なしの体験）。
+bool adsAvailable(BuildContext context) =>
+    context.read<RewardedAdService>().isConfigured;
+
 /// 報酬型広告を見せて、視聴し切ったら枠を広げる。
 /// 設定画面と BOX 満杯ダイアログの両方から使う。
 Future<void> watchAdForBoost(BuildContext context) async {
