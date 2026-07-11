@@ -7,9 +7,9 @@ class AppNavigation extends ChangeNotifier {
   static const int boxTab = 1;
   static const int todayTab = 2;
   static const int laterTab = 3;
-  static const int settingsTab = 4;
 
-  int _tab = homeTab;
+  // 起動直後は TODAY タブを開く。
+  int _tab = todayTab;
   int get tab => _tab;
 
   void goTo(int index) {

@@ -5,6 +5,7 @@ import '../models/enums.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import '../widgets/app_menu_button.dart';
 import '../widgets/remaining_time.dart';
 import '../widgets/task_card.dart';
 import '../widgets/ui_kit.dart';
@@ -25,19 +26,31 @@ class HomeScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 130),
       children: [
-        // ヘッダー：日付ラベル + 残り時間
+        // ヘッダー：日付ラベル + 残り時間 + メニュー
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: const [
             Text('今日',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.sub, letterSpacing: 1)),
+            Spacer(),
             RemainingTime(fontSize: 16),
+            SizedBox(width: 4),
+            AppMenuButton(),
           ],
         ),
         const SizedBox(height: 18),
 
         // TODAY 大カウンター
         _TodayHero(count: app.todayUnfinished, cap: app.capacityFor(TaskStatus.today)!),
+
+        // 今日の精算：夜の精算に設定した時間を過ぎたら「今日」の下に出す。
+        // 常時は出さない（夜に決着をつける導線なので、その時間まで隠す）。
+        if (_afterSettlementTime(app)) ...[
+          const SizedBox(height: 14),
+          _SettlementButton(
+            onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const SettlementScreen())),
+          ),
+        ],
 
         const SizedBox(height: 24),
 
@@ -83,16 +96,16 @@ class HomeScreen extends StatelessWidget {
             Expanded(child: _StatTile(label: 'LATER', count: app.count(TaskStatus.later), cap: app.capacityFor(TaskStatus.later)!, accent: AppTheme.laterAccent, onTap: () => onGoToTab(3))),
           ],
         ),
-
-        const SizedBox(height: 24),
-
-        // 今日の精算
-        _SettlementButton(
-          onTap: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const SettlementScreen())),
-        ),
       ],
     );
+  }
+
+  /// 夜の精算に設定した時刻を今日すでに過ぎているか。
+  bool _afterSettlementTime(AppState app) {
+    final now = DateTime.now();
+    final s = app.settings.settlement;
+    final at = DateTime(now.year, now.month, now.day, s.hour, s.minute);
+    return !now.isBefore(at);
   }
 
   Widget _emptyNext(BuildContext context) {

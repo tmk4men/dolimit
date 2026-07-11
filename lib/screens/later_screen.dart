@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
 import '../util/day_clock.dart';
+import '../widgets/app_menu_button.dart';
 import '../widgets/task_card.dart';
 import '../widgets/genre_chip.dart';
 import '../widgets/ui_kit.dart';
@@ -42,6 +43,7 @@ class _LaterScreenState extends State<LaterScreen> {
           barColor: AppTheme.laterAccent,
           caption: 'LATERは墓場じゃない。未来のTODAY。',
           captionColor: AppTheme.laterAccent,
+          action: const AppMenuButton(),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),

@@ -108,6 +108,7 @@ class ScreenHeader extends StatelessWidget {
   final String? caption; // 下の短い一言
   final Color captionColor;
   final Widget? trailing; // 残り時間など
+  final Widget? action; // 右端のメニューなど
   const ScreenHeader({
     super.key,
     required this.title,
@@ -117,6 +118,7 @@ class ScreenHeader extends StatelessWidget {
     this.caption,
     this.captionColor = AppTheme.sub,
     this.trailing,
+    this.action,
   });
 
   @override
@@ -152,6 +154,10 @@ class ScreenHeader extends StatelessWidget {
               ),
               const Spacer(),
               if (trailing != null) trailing!,
+              if (action != null) ...[
+                const SizedBox(width: 4),
+                action!,
+              ],
             ],
           ),
           const SizedBox(height: 10),
