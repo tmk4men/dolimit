@@ -34,6 +34,9 @@ class AppState extends ChangeNotifier {
   List<Genre> _genres = [];
   late AppSettings settings;
 
+  /// 直前の1手（完了・削除・移動）を取り消すためのスナップショット。
+  Map<String, dynamic>? _undoSnapshot;
+
   AppState({required this.store, required this.notifier, this.widgets});
 
   // ===== 起動 =====
@@ -67,6 +70,19 @@ class AppState extends ChangeNotifier {
 
   /// TODAY 未完了数（= バッジ）
   int get todayUnfinished => count(TaskStatus.today);
+
+  /// 継続中の連続決着日数。今日か昨日に決着していれば有効、途切れたら 0。
+  int get currentStreak {
+    final d = settings.lastClearedDay;
+    if (d == null) return 0;
+    return DayClock.daysBetween(d, DateTime.now()) <= 1 ? settings.streak : 0;
+  }
+
+  /// 今日はもう TODAY を決着させたか（達成演出の判定に使う）。
+  bool get clearedToday => DayClock.isSameDay(settings.lastClearedDay, DateTime.now());
+
+  /// 直前の操作を取り消せる状態か。
+  bool get canUndo => _undoSnapshot != null;
 
   List<Genre> get genres {
     final g = [..._genres];
@@ -159,6 +175,7 @@ class AppState extends ChangeNotifier {
   bool move(TaskItem task, TaskStatus target) {
     final cap = capacityFor(target);
     if (cap != null && count(target) >= cap) return false;
+    _rememberForUndo(task);
     _apply(task, target);
     _persistAndRefresh();
     return true;
@@ -185,6 +202,7 @@ class AppState extends ChangeNotifier {
   // ===== 完了 / 削除 / 編集 =====
 
   void complete(TaskItem task) {
+    _rememberForUndo(task);
     task.status = TaskStatus.done;
     task.completedAt = DateTime.now();
     task.updatedAt = DateTime.now();
@@ -194,11 +212,36 @@ class AppState extends ChangeNotifier {
   }
 
   void deleteTask(TaskItem task) {
+    _rememberForUndo(task);
     task.status = TaskStatus.deleted;
     task.deletedAt = DateTime.now();
     task.updatedAt = DateTime.now();
     notifier.cancelLaterReminder(task.id);
     _persistAndRefresh();
+  }
+
+  /// 完了・削除・移動の直前状態を覚えておく（[undoLast] で戻す）。
+  void _rememberForUndo(TaskItem task) {
+    _undoSnapshot = task.toJson();
+  }
+
+  /// 直前の1手を取り消す。戻せたら true。
+  bool undoLast() {
+    final snap = _undoSnapshot;
+    if (snap == null) return false;
+    _undoSnapshot = null;
+    final id = snap['id'] as String;
+    final restored = TaskItem.fromJson(snap);
+    final i = _tasks.indexWhere((t) => t.id == id);
+    if (i >= 0) {
+      _tasks[i] = restored;
+    } else {
+      _tasks.add(restored);
+    }
+    // 完了・削除で消していた LATER 事前通知を、戻した状態に合わせて貼り直す。
+    _scheduleReminder(restored);
+    _persistAndRefresh();
+    return true;
   }
 
   void setTitle(TaskItem task, String title) {
@@ -612,8 +655,29 @@ class AppState extends ChangeNotifier {
 
   void _persistAndRefresh() {
     _persistTasks();
+    _maybeRecordCleared();
     _refreshBadge();
     notifyListeners();
+  }
+
+  /// TODAY を今日ぶん片づけ切ったら「決着」として記録し、ストリークを進める。
+  /// もともと空だった日（今日1件も完了していない日）は数えない。
+  void _maybeRecordCleared() {
+    if (todayUnfinished != 0) return;
+    final now = DateTime.now();
+    if (clearedToday) return; // 今日はもう数えた
+    final completedToday = _tasks.any((t) =>
+        t.status == TaskStatus.done && DayClock.isSameDay(t.completedAt, now));
+    if (!completedToday) return;
+    final today = DayClock.startOfDay(now);
+    final yesterday = today.subtract(const Duration(days: 1));
+    if (DayClock.isSameDay(settings.lastClearedDay, yesterday)) {
+      settings.streak += 1;
+    } else {
+      settings.streak = 1;
+    }
+    settings.lastClearedDay = today;
+    _persistSettings();
   }
 
   void _refreshBadge() {

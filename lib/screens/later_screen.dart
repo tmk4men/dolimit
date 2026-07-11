@@ -14,6 +14,7 @@ import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 import '../widgets/later_detail_sheet.dart';
+import '../widgets/undo_snack.dart';
 
 /// あとでやるタスク。開始日順にグループ表示。
 class LaterScreen extends StatefulWidget {
@@ -105,11 +106,13 @@ class _LaterScreenState extends State<LaterScreen> {
       genre: app.genreById(task.genreId),
       subtitle: parts.isEmpty ? '開始日なし' : parts.join('  ·  '),
       subtitleColor: flagged ? AppTheme.todayAccent : AppTheme.laterAccent,
-      onToggle: () => app.complete(task),
+      onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
       onTapBody: () => LaterDetailSheet.present(context, task),
       menu: [
         TaskMenuAction('TODAYへ移動', Icons.wb_sunny_outlined, () {
-          if (!app.move(task, TaskStatus.today)) {
+          if (app.move(task, TaskStatus.today)) {
+            showUndoSnack(context, 'TODAYへ移動しました');
+          } else {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.today))));
           }
@@ -117,8 +120,10 @@ class _LaterScreenState extends State<LaterScreen> {
         TaskMenuAction('開始日 / 通知を設定', Icons.event_outlined, () => LaterDetailSheet.present(context, task)),
         TaskMenuAction('ジャンル変更', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
         TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
-        TaskMenuAction('完了', Icons.check_circle_outline, () => app.complete(task)),
-        TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
+        TaskMenuAction('完了', Icons.check_circle_outline,
+            () { app.complete(task); showUndoSnack(context, '完了にしました'); }),
+        TaskMenuAction('削除', Icons.delete_outline,
+            () { app.deleteTask(task); showUndoSnack(context, '削除しました'); }, destructive: true),
       ],
     );
   }

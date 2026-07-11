@@ -26,6 +26,12 @@ class AppSettings {
   TimeOfDayPref settlement;
   TimeOfDayPref laterAutoMove;
 
+  /// 連続で TODAY を決着させた日数（ストリーク）。
+  int streak;
+
+  /// 最後に「決着」した日（当日の 0:00）。null なら未達成。
+  DateTime? lastClearedDay;
+
   AppSettings({
     this.notificationsEnabled = true,
     this.badgeEnabled = true,
@@ -36,6 +42,8 @@ class AppSettings {
     this.midday = const TimeOfDayPref(15, 0),
     this.settlement = const TimeOfDayPref(22, 30),
     this.laterAutoMove = const TimeOfDayPref(7, 0),
+    this.streak = 0,
+    this.lastClearedDay,
   });
 
   Map<String, dynamic> toJson() => {
@@ -48,6 +56,8 @@ class AppSettings {
         'midday': midday.toJson(),
         'settlement': settlement.toJson(),
         'laterAutoMove': laterAutoMove.toJson(),
+        'streak': streak,
+        'lastClearedDay': lastClearedDay?.toIso8601String(),
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -70,5 +80,9 @@ class AppSettings {
         laterAutoMove: j['laterAutoMove'] != null
             ? TimeOfDayPref.fromJson(j['laterAutoMove'] as Map<String, dynamic>)
             : const TimeOfDayPref(7, 0),
+        streak: (j['streak'] ?? 0) as int,
+        lastClearedDay: j['lastClearedDay'] == null
+            ? null
+            : DateTime.parse(j['lastClearedDay'] as String),
       );
 }

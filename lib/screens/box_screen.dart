@@ -11,6 +11,7 @@ import '../widgets/task_card.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
+import '../widgets/undo_snack.dart';
 
 /// 未分類タスクを仕分ける場所。右スワイプ=TODAY / 左スワイプ=LATER。削除はスワイプに含めない。
 class BoxScreen extends StatelessWidget {
@@ -58,7 +59,9 @@ class BoxScreen extends StatelessWidget {
       confirmDismiss: (dir) async {
         final target = dir == DismissDirection.startToEnd ? TaskStatus.today : TaskStatus.later;
         final ok = app.move(task, target);
-        if (!ok) {
+        if (ok) {
+          showUndoSnack(context, target == TaskStatus.today ? 'TODAYへ移動しました' : 'LATERへ移動しました');
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(Limits.fullMessage(target))));
         }
@@ -67,12 +70,13 @@ class BoxScreen extends StatelessWidget {
       child: TaskCard(
         task: task,
         genre: app.genreById(task.genreId),
-        onToggle: () => app.complete(task),
+        onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
         onTapBody: () => EditTaskSheet.present(context, task),
         menu: [
           TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
           TaskMenuAction('ジャンル設定', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
-          TaskMenuAction('削除', Icons.delete_outline, () => app.deleteTask(task), destructive: true),
+          TaskMenuAction('削除', Icons.delete_outline,
+              () { app.deleteTask(task); showUndoSnack(context, '削除しました'); }, destructive: true),
         ],
       ),
     );
