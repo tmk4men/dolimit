@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 配置先: android/app/src/main/res/values-night/colors.xml（ダーク）
+     アプリ本体の AppColors.dark に対応。ダークのホーム画面で白箱が浮くのを防ぐ。 -->
+<resources>
+    <color name="widget_bg">#FF1A1C21</color>     <!-- card -->
+    <color name="widget_ink">#FFECEDF1</color>    <!-- ink -->
+    <color name="widget_sub">#FF868995</color>    <!-- sub -->
+    <color name="widget_body">#FFB7BAC4</color>   <!-- ink2（タスク名） -->
+    <color name="widget_accent">#FFFF5B50</color> <!-- todayAccent -->
+</resources>

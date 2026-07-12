@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 配置先: android/app/src/main/res/values/colors.xml（ライト）
+     既存の colors.xml があれば <color> 行だけ追記する。
+     アプリ本体の AppColors.light に対応。 -->
+<resources>
+    <color name="widget_bg">#FFFFFFFF</color>     <!-- card -->
+    <color name="widget_ink">#FF17181C</color>    <!-- ink -->
+    <color name="widget_sub">#FF9395A0</color>    <!-- sub -->
+    <color name="widget_body">#FF55575F</color>   <!-- ink2（タスク名） -->
+    <color name="widget_accent">#FFF23B30</color> <!-- todayAccent -->
+</resources>

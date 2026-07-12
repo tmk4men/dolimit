@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -21,11 +22,18 @@ class DoLimitWidgetProvider : HomeWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.dolimit_widget).apply {
                 val count = widgetData.getInt("today_count", 0)
                 val titles = widgetData.getString("today_titles", "") ?: ""
-                setTextViewText(R.id.widget_count, count.toString())
-                setTextViewText(
-                    R.id.widget_titles,
-                    if (titles.isBlank()) "TODAYは空です" else titles
-                )
+                val cleared = count == 0 && titles.isBlank()
+
+                // TODAY が空なら「決着」状態、そうでなければ件数＋タスク名を出す。
+                if (cleared) {
+                    setViewVisibility(R.id.state_normal, View.GONE)
+                    setViewVisibility(R.id.state_cleared, View.VISIBLE)
+                } else {
+                    setViewVisibility(R.id.state_normal, View.VISIBLE)
+                    setViewVisibility(R.id.state_cleared, View.GONE)
+                    setTextViewText(R.id.widget_count, count.toString())
+                    setTextViewText(R.id.widget_titles, titles)
+                }
 
                 // タップでアプリを起動して TODAY を開く。Dart 側（app.dart）が
                 // dolimit://today を受け取ってタブを切り替える。MainActivity は

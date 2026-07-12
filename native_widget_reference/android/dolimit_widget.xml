@@ -1,37 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 配置先: android/app/src/main/res/layout/dolimit_widget.xml -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="14dp"
-    android:background="#FFFFFF">
+    android:background="@drawable/widget_background"
+    android:padding="14dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TODAY 残り"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:textColor="#8A8A8E" />
-
-    <TextView
-        android:id="@+id/widget_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        android:textColor="#111114" />
-
-    <TextView
-        android:id="@+id/widget_titles"
+    <!-- 通常状態: 残り件数＋上位タスク -->
+    <LinearLayout
+        android:id="@+id/state_normal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxLines="3"
-        android:ellipsize="end"
-        android:text="TODAYは空です"
-        android:textSize="12sp"
-        android:textColor="#3A3A3C" />
-</LinearLayout>
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TODAY 残り"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_sub" />
+
+        <TextView
+            android:id="@+id/widget_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_accent" />
+
+        <TextView
+            android:id="@+id/widget_titles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:text=""
+            android:textSize="12sp"
+            android:textColor="@color/widget_body" />
+    </LinearLayout>
+
+    <!-- 決着状態: TODAY が空。アプリ本体の「今日は決着！」と揃える -->
+    <LinearLayout
+        android:id="@+id/state_cleared"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎉"
+            android:textSize="26sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="今日は決着！"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/widget_ink" />
+    </LinearLayout>
+</FrameLayout>
