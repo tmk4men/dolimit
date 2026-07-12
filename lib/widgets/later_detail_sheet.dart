@@ -49,21 +49,28 @@ const _presets = <_Preset>[
 
 class _LaterDetailSheetState extends State<LaterDetailSheet> {
   late DateTime? _date = widget.task.startAt;
-  late bool _timeSpecified = !(widget.task.startDateOnly) && widget.task.startAt != null;
+  late bool _timeSpecified =
+      !(widget.task.startDateOnly) && widget.task.startAt != null;
   late TimeOfDay _time = TimeOfDay(
-      hour: widget.task.startAt?.hour ?? 9, minute: widget.task.startAt?.minute ?? 0);
+      hour: widget.task.startAt?.hour ?? 9,
+      minute: widget.task.startAt?.minute ?? 0);
   late bool _autoMove = widget.task.autoMoveToToday;
 
   late int _presetIndex = _initialPreset();
   late int _customValue = widget.task.reminderOffsetValue ?? 10;
-  late ReminderOffsetUnit _customUnit = widget.task.reminderOffsetUnit ?? ReminderOffsetUnit.minute;
+  late ReminderOffsetUnit _customUnit =
+      widget.task.reminderOffsetUnit ?? ReminderOffsetUnit.minute;
 
   int _initialPreset() {
     if (!widget.task.reminderEnabled) return 0;
     final v = widget.task.reminderOffsetValue;
     final u = widget.task.reminderOffsetUnit;
     for (var i = 0; i < _presets.length; i++) {
-      if (!_presets[i].custom && _presets[i].value == v && _presets[i].unit == u) return i;
+      if (!_presets[i].custom &&
+          _presets[i].value == v &&
+          _presets[i].unit == u) {
+        return i;
+      }
     }
     return _presets.length - 1; // custom
   }
@@ -74,7 +81,9 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        left: 20, right: 20, top: 16,
+        left: 20,
+        right: 20,
+        top: 16,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -83,10 +92,8 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
           children: [
             const SheetHandle(),
             const SizedBox(height: 6),
-            const Text('LATER 詳細設定', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            Text('LATERは墓場じゃない。未来のTODAY。',
-                style: TextStyle(fontSize: 12, color: context.c.sub)),
+            const Text('LATER 詳細設定',
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
 
             // 開始日
@@ -101,7 +108,9 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
             if (_date != null)
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () => setState(() => _date = null), child: const Text('クリア')),
+                child: TextButton(
+                    onPressed: () => setState(() => _date = null),
+                    child: const Text('クリア')),
               ),
 
             // 開始時刻
@@ -109,11 +118,12 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
               contentPadding: EdgeInsets.zero,
               activeColor: context.c.laterAccent,
               value: _timeSpecified,
-              onChanged: _date == null ? null : (v) => setState(() => _timeSpecified = v),
+              onChanged: _date == null
+                  ? null
+                  : (v) => setState(() => _timeSpecified = v),
               title: const Text('開始時刻も指定'),
-              subtitle: Text(_timeSpecified
-                  ? _time.format(context)
-                  : '未指定なら自動移動時刻に移動'),
+              subtitle: Text(
+                  _timeSpecified ? _time.format(context) : '未指定なら自動移動時刻に移動'),
             ),
             if (_timeSpecified && _date != null)
               Align(
@@ -159,9 +169,11 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
                   DropdownButton<ReminderOffsetUnit>(
                     value: _customUnit,
                     items: ReminderOffsetUnit.values
-                        .map((u) => DropdownMenuItem(value: u, child: Text(u.label)))
+                        .map((u) =>
+                            DropdownMenuItem(value: u, child: Text(u.label)))
                         .toList(),
-                    onChanged: (u) => setState(() => _customUnit = u ?? _customUnit),
+                    onChanged: (u) =>
+                        setState(() => _customUnit = u ?? _customUnit),
                   ),
                 ],
               ),
@@ -214,7 +226,8 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
     final bool startDateOnly = !_timeSpecified;
     if (_date != null) {
       if (_timeSpecified) {
-        startAt = DateTime(_date!.year, _date!.month, _date!.day, _time.hour, _time.minute);
+        startAt = DateTime(
+            _date!.year, _date!.month, _date!.day, _time.hour, _time.minute);
       } else {
         startAt = DateTime(_date!.year, _date!.month, _date!.day);
       }
