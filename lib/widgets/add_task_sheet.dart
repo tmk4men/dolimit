@@ -19,7 +19,8 @@ class AddTaskSheet extends StatefulWidget {
 
   /// BOX 満杯時はシートを出さずアラート、空きがあれば表示。
   /// [onSort] は「仕分ける」押下時（BOX タブへ切替）に呼ぶ。
-  static Future<void> present(BuildContext context, {VoidCallback? onSort}) async {
+  static Future<void> present(BuildContext context,
+      {VoidCallback? onSort}) async {
     final app = context.read<AppState>();
     if (app.isFull(TaskStatus.box)) {
       await _showBoxFullAlert(context, onSort);
@@ -35,7 +36,8 @@ class AddTaskSheet extends StatefulWidget {
     );
   }
 
-  static Future<void> _showBoxFullAlert(BuildContext context, VoidCallback? onSort) {
+  static Future<void> _showBoxFullAlert(
+      BuildContext context, VoidCallback? onSort) {
     final cap = context.read<AppState>().capacityFor(TaskStatus.box)!;
     return showDialog(
       context: context,
@@ -44,7 +46,10 @@ class AddTaskSheet extends StatefulWidget {
         content: Text('$cap個たまっています。先に仕分けてください。'),
         actions: [
           TextButton(
-            onPressed: () { Navigator.pop(ctx); onSort?.call(); },
+            onPressed: () {
+              Navigator.pop(ctx);
+              onSort?.call();
+            },
             child: const Text('仕分ける'),
           ),
           // 広告は実装が接続されるまで導線を出さない。
@@ -57,10 +62,14 @@ class AddTaskSheet extends StatefulWidget {
               child: Text('広告で一時的に+${Limits.adBoostBox}'),
             ),
           TextButton(
-            onPressed: () { Navigator.pop(ctx); ProSheet.present(context); },
+            onPressed: () {
+              Navigator.pop(ctx);
+              ProSheet.present(context);
+            },
             child: const Text('Proで枠を増やす'),
           ),
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
         ],
       ),
     );
@@ -147,7 +156,8 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
       return;
     }
     final app = context.read<AppState>();
-    final ok = app.addToBox(_controller.text, source: _usedVoice ? TaskSource.voice : TaskSource.manual);
+    final ok = app.addToBox(_controller.text,
+        source: _usedVoice ? TaskSource.voice : TaskSource.manual);
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
@@ -157,83 +167,97 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    // キーボードで領域が縮んでも、入力欄が画面外へ押し出されないよう
+    // スクロール可能にする。padding の bottom にキーボード高さを足す。
     return Padding(
       padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 6),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SheetHandle(),
-          const SizedBox(height: 6),
-          const Text('BOXに追加', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focus,
-                  autofocus: true,
-                  textInputAction: TextInputAction.done,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-                  onSubmitted: (_) => _add(),
-                  decoration: InputDecoration(
-                    hintText: 'やることを入力',
-                    filled: true,
-                    fillColor: context.c.fill,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      child: SingleChildScrollView(
+        reverse: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SheetHandle(),
+            const SizedBox(height: 6),
+            const Text('BOXに追加',
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focus,
+                    autofocus: true,
+                    textInputAction: TextInputAction.done,
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w600),
+                    onSubmitted: (_) => _add(),
+                    decoration: InputDecoration(
+                      hintText: 'やることを入力',
+                      filled: true,
+                      fillColor: context.c.fill,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _toggleMic,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: 52, height: 52,
-                  decoration: BoxDecoration(
-                    color: _listening
-                        ? context.c.todayAccent
-                        : (_usedVoice ? context.c.ink : context.c.fill),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    _listening ? Icons.stop_rounded : Icons.mic_none_rounded,
-                    color: _listening
-                        ? Colors.white
-                        : (_usedVoice ? context.c.bg : context.c.ink2),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _toggleMic,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: _listening
+                          ? context.c.todayAccent
+                          : (_usedVoice ? context.c.ink : context.c.fill),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      _listening ? Icons.stop_rounded : Icons.mic_none_rounded,
+                      color: _listening
+                          ? Colors.white
+                          : (_usedVoice ? context.c.bg : context.c.ink2),
+                    ),
                   ),
                 ),
+              ],
+            ),
+            // 認識中だけ状態を出す。ふだんは説明文を出さず、すっきりさせる。
+            if (_listening) ...[
+              const SizedBox(height: 12),
+              Text(
+                '聞き取っています… もう一度押すと確定します',
+                style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: context.c.todayAccent),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _listening
-                ? '聞き取っています… もう一度押すと確定します'
-                : 'BOXに入れる。左右で仕分ける。TODAYで決着。',
-            style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: _listening ? FontWeight.w700 : FontWeight.w400,
-                color: _listening ? context.c.todayAccent : context.c.sub),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: context.c.ink,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: context.c.ink,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _add,
+                child: const Text('追加',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
-              onPressed: _add,
-              child: const Text('追加', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             ),
-          ),
-          const SizedBox(height: 14),
-        ],
+            const SizedBox(height: 14),
+          ],
+        ),
       ),
     );
   }

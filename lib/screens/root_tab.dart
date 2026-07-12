@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/enums.dart';
 import '../state/app_navigation.dart';
+import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/ui_kit.dart';
@@ -19,6 +21,9 @@ class RootTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nav = context.watch<AppNavigation>();
+    final app = context.watch<AppState>();
+    final todayCount = app.count(TaskStatus.today);
+    final laterCount = app.count(TaskStatus.later);
     void goToTab(int i) => nav.goTo(i);
 
     final screens = [
@@ -28,7 +33,9 @@ class RootTab extends StatelessWidget {
     ];
 
     return Scaffold(
-      body: SafeArea(bottom: false, child: IndexedStack(index: nav.tab, children: screens)),
+      body: SafeArea(
+          bottom: false,
+          child: IndexedStack(index: nav.tab, children: screens)),
       floatingActionButton: _Fab(
         onTap: () => AddTaskSheet.present(context,
             onSort: () => goToTab(AppNavigation.boxTab)),
@@ -38,12 +45,45 @@ class RootTab extends StatelessWidget {
         onDestinationSelected: goToTab,
         backgroundColor: context.c.card,
         indicatorColor: context.c.boxSoft,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.inbox_outlined), selectedIcon: Icon(Icons.inbox), label: 'BOX'),
-          NavigationDestination(icon: Icon(Icons.wb_sunny_outlined), selectedIcon: Icon(Icons.wb_sunny), label: 'TODAY'),
-          NavigationDestination(icon: Icon(Icons.nightlight_outlined), selectedIcon: Icon(Icons.nightlight), label: 'LATER'),
+        destinations: [
+          const NavigationDestination(
+              icon: Icon(Icons.inbox_outlined),
+              selectedIcon: Icon(Icons.inbox),
+              label: 'BOX'),
+          NavigationDestination(
+            icon: _CountBadge(
+                count: todayCount, child: const Icon(Icons.wb_sunny_outlined)),
+            selectedIcon: _CountBadge(
+                count: todayCount, child: const Icon(Icons.wb_sunny)),
+            label: 'TODAY',
+          ),
+          NavigationDestination(
+            icon: _CountBadge(
+                count: laterCount,
+                child: const Icon(Icons.nightlight_outlined)),
+            selectedIcon: _CountBadge(
+                count: laterCount, child: const Icon(Icons.nightlight)),
+            label: 'LATER',
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// タブアイコン右上の赤い件数バッジ。0 件のときは付けない。
+class _CountBadge extends StatelessWidget {
+  final int count;
+  final Widget child;
+  const _CountBadge({required this.count, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return child;
+    return Badge(
+      label: Text('$count'),
+      backgroundColor: context.c.todayAccent,
+      child: child,
     );
   }
 }

@@ -39,49 +39,55 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    // キーボードで領域が縮んでも入力欄が画面外へ隠れないようスクロール可能に。
     return Padding(
-      padding: EdgeInsets.only(bottom: bottom + 16, left: 20, right: 20, top: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SheetHandle(),
-          const SizedBox(height: 6),
-          const Text('編集', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _title,
-            decoration: const InputDecoration(labelText: 'タスク名'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _memo,
-            maxLines: 3,
-            minLines: 1,
-            decoration: const InputDecoration(labelText: 'メモ（任意）'),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: context.c.ink),
-              onPressed: () {
-                // 空欄のまま保存すると setTitle が黙って無視するので、
-                // 「保存した」と誤解させないようここで止める。
-                if (_title.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('タスク名を入力してください')));
-                  return;
-                }
-                final app = context.read<AppState>();
-                app.setTitle(widget.task, _title.text);
-                app.setMemo(widget.task, _memo.text);
-                Navigator.pop(context);
-              },
-              child: const Text('保存'),
+      padding:
+          EdgeInsets.only(bottom: bottom + 16, left: 20, right: 20, top: 20),
+      child: SingleChildScrollView(
+        reverse: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SheetHandle(),
+            const SizedBox(height: 6),
+            const Text('編集',
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _title,
+              decoration: const InputDecoration(labelText: 'タスク名'),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _memo,
+              maxLines: 3,
+              minLines: 1,
+              decoration: const InputDecoration(labelText: 'メモ（任意）'),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: context.c.ink),
+                onPressed: () {
+                  // 空欄のまま保存すると setTitle が黙って無視するので、
+                  // 「保存した」と誤解させないようここで止める。
+                  if (_title.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('タスク名を入力してください')));
+                    return;
+                  }
+                  final app = context.read<AppState>();
+                  app.setTitle(widget.task, _title.text);
+                  app.setMemo(widget.task, _memo.text);
+                  Navigator.pop(context);
+                },
+                child: const Text('保存'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

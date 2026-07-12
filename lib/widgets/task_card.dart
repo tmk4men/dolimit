@@ -12,7 +12,8 @@ class TaskMenuAction {
   final IconData icon;
   final VoidCallback onTap;
   final bool destructive;
-  const TaskMenuAction(this.label, this.icon, this.onTap, {this.destructive = false});
+  const TaskMenuAction(this.label, this.icon, this.onTap,
+      {this.destructive = false});
 }
 
 /// 汎用タスクカード。チェック・タイトル・ジャンル・補助情報・⋯メニュー。
@@ -39,6 +40,7 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final done = task.status == TaskStatus.done;
+    final memo = task.memo?.trim() ?? '';
     return PressableCard(
       onTap: onTapBody,
       padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
@@ -65,19 +67,36 @@ class TaskCard extends StatelessWidget {
                       decorationColor: context.c.sub,
                     ),
                   ),
+                  if (memo.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      memo,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.3,
+                        fontWeight: FontWeight.w400,
+                        color: context.c.sub,
+                      ),
+                    ),
+                  ],
                   if (genre != null || subtitle != null) ...[
                     const SizedBox(height: 7),
                     Row(
                       children: [
                         if (genre != null) GenreChip(genre: genre),
-                        if (genre != null && subtitle != null) const SizedBox(width: 8),
+                        if (genre != null && subtitle != null)
+                          const SizedBox(width: 8),
                         if (subtitle != null)
                           Flexible(
                             child: Text(subtitle!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.w700, color: subtitleColor ?? context.c.sub)),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: subtitleColor ?? context.c.sub)),
                           ),
                       ],
                     ),
@@ -114,7 +133,8 @@ class _CheckButton extends StatelessWidget {
                   key: const ValueKey(true),
                   width: 26,
                   height: 26,
-                  decoration: BoxDecoration(color: context.c.ink, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                      color: context.c.ink, shape: BoxShape.circle),
                   child: Icon(Icons.check, size: 17, color: context.c.bg),
                 )
               : Container(
@@ -123,7 +143,8 @@ class _CheckButton extends StatelessWidget {
                   height: 26,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: context.c.sub.withOpacity(0.55), width: 2),
+                    border: Border.all(
+                        color: context.c.sub.withOpacity(0.55), width: 2),
                   ),
                 ),
         ),
@@ -147,7 +168,8 @@ class _MenuButton extends StatelessWidget {
         width: 34,
         height: 34,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: context.c.fill, shape: BoxShape.circle),
+        decoration:
+            BoxDecoration(color: context.c.fill, shape: BoxShape.circle),
         child: Icon(Icons.more_horiz, size: 18, color: context.c.ink2),
       ),
       onSelected: (i) => menu[i].onTap(),
@@ -159,12 +181,17 @@ class _MenuButton extends StatelessWidget {
             child: Row(
               children: [
                 Icon(menu[i].icon,
-                    size: 19, color: menu[i].destructive ? context.c.todayAccent : context.c.ink2),
+                    size: 19,
+                    color: menu[i].destructive
+                        ? context.c.todayAccent
+                        : context.c.ink2),
                 const SizedBox(width: 12),
                 Text(menu[i].label,
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: menu[i].destructive ? context.c.todayAccent : context.c.ink)),
+                        color: menu[i].destructive
+                            ? context.c.todayAccent
+                            : context.c.ink)),
               ],
             ),
           ),
