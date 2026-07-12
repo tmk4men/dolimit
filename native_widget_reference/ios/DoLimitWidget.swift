@@ -60,6 +60,9 @@ struct DoLimitWidgetEntryView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // タップでアプリを起動して TODAY を開く。Dart 側（app.dart）が
+        // dolimit://today を受け取ってタブを切り替える。
+        .widgetURL(URL(string: "dolimit://today"))
     }
 }
 
