@@ -242,9 +242,7 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                     ),
                     child: Icon(
                       _listening ? Icons.stop_rounded : Icons.mic_none_rounded,
-                      color: _listening
-                          ? Colors.white
-                          : (_usedVoice ? context.c.bg : context.c.ink2),
+                      color: _listening || _usedVoice ? context.c.bg : context.c.ink2,
                     ),
                   ),
                 ),

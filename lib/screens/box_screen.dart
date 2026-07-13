@@ -52,10 +52,10 @@ class BoxScreen extends StatelessWidget {
     return Dismissible(
       key: ValueKey(task.id),
       movementDuration: const Duration(milliseconds: 220),
-      // 右スワイプ = TODAY（赤）
-      background: _bg(Alignment.centerLeft, context.c.todayAccent, Icons.wb_sunny_rounded, 'TODAY'),
-      // 左スワイプ = LATER（青）
-      secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, Icons.nightlight_round, 'LATER', reverse: true),
+      // 右スワイプ = TODAY（コーラル）
+      background: _bg(Alignment.centerLeft, context.c.todayAccent, context.c.bg, Icons.wb_sunny_rounded, 'TODAY'),
+      // 左スワイプ = LATER（ティール）
+      secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, context.c.bg, Icons.nightlight_round, 'LATER', reverse: true),
       confirmDismiss: (dir) async {
         final target = dir == DismissDirection.startToEnd ? TaskStatus.today : TaskStatus.later;
         final ok = app.move(task, target);
@@ -81,12 +81,12 @@ class BoxScreen extends StatelessWidget {
     );
   }
 
-  Widget _bg(Alignment align, Color color, IconData icon, String label, {bool reverse = false}) {
+  Widget _bg(Alignment align, Color color, Color onColor, IconData icon, String label, {bool reverse = false}) {
     final children = [
-      Icon(icon, color: Colors.white, size: 26),
+      Icon(icon, color: onColor, size: 26),
       const SizedBox(width: 10),
       Text(label,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1)),
+          style: TextStyle(color: onColor, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1)),
     ];
     return Container(
       alignment: align,

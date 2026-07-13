@@ -90,6 +90,7 @@ class _CountBadge extends StatelessWidget {
     if (count <= 0) return child;
     return Badge(
       label: Text('$count'),
+      textColor: context.c.bg,
       backgroundColor: context.c.todayAccent,
       child: child,
     );

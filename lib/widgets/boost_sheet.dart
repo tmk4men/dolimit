@@ -90,8 +90,8 @@ class _BoostSheetState extends State<BoostSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                       color: context.c.ink, borderRadius: AppTheme.radiusPill),
-                  child: const Text('購入済み',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                  child: Text('購入済み',
+                      style: TextStyle(color: context.c.bg, fontSize: 12, fontWeight: FontWeight.w800)),
                 ),
             ],
           ),
@@ -114,9 +114,9 @@ class _BoostSheetState extends State<BoostSheet> {
                 ),
                 onPressed: _busy ? null : () => _run(_purchase.buyBoost),
                 child: _busy
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        child: CircularProgressIndicator(strokeWidth: 2, color: context.c.bg))
                     : Text('${_price ?? '¥100'}で購入',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),

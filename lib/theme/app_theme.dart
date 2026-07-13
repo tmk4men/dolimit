@@ -39,7 +39,7 @@ class AppColors extends ThemeExtension<AppColors> {
   static const light = AppColors(
     ink: Color(0xFF4A443E), // やわらかい茶グレー
     ink2: Color(0xFF7A736A),
-    sub: Color(0xFFA99E8D),
+    sub: Color(0xFF948A78), // 補助テキスト（可読性のため少し濃く）
     line: Color(0xFFEDE6DA),
     bg: Color(0xFFFAF6EF), // 生成り・クリーム
     card: Color(0xFFFFFDF8),
@@ -133,7 +133,7 @@ class AppTheme {
   // ---- ニュートラル ----
   static const Color ink = Color(0xFF4A443E);
   static const Color ink2 = Color(0xFF7A736A);
-  static const Color sub = Color(0xFFA99E8D);
+  static const Color sub = Color(0xFF948A78);
   static const Color line = Color(0xFFEDE6DA);
   static const Color bg = Color(0xFFFAF6EF);
   static const Color card = Color(0xFFFFFDF8);

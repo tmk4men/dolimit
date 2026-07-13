@@ -89,8 +89,8 @@ class _ProSheetState extends State<ProSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                       color: context.c.ink, borderRadius: AppTheme.radiusPill),
-                  child: const Text('解除済み',
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                  child: Text('解除済み',
+                      style: TextStyle(color: context.c.bg, fontSize: 12, fontWeight: FontWeight.w800)),
                 ),
             ],
           ),
@@ -114,9 +114,9 @@ class _ProSheetState extends State<ProSheet> {
                 ),
                 onPressed: _busy ? null : () => _run(_purchase.buyPro),
                 child: _busy
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        child: CircularProgressIndicator(strokeWidth: 2, color: context.c.bg))
                     : Text('Proを購入（${_price ?? '¥500'}）',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),

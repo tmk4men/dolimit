@@ -217,8 +217,8 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
                         for (final s in _samples.take(1))
                           Dismissible(
                             key: ValueKey(s),
-                            background: _bg(Alignment.centerLeft, context.c.todayAccent, 'TODAY →'),
-                            secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, '← LATER'),
+                            background: _bg(Alignment.centerLeft, context.c.todayAccent, context.c.bg, 'TODAY →'),
+                            secondaryBackground: _bg(Alignment.centerRight, context.c.laterAccent, context.c.bg, '← LATER'),
                             onDismissed: (dir) {
                               setState(() {
                                 _feedback = dir == DismissDirection.startToEnd ? 'TODAYへ' : 'LATERへ';
@@ -279,13 +279,13 @@ class _SwipeExperienceState extends State<_SwipeExperience> {
     );
   }
 
-  Widget _bg(Alignment align, Color color, String label) {
+  Widget _bg(Alignment align, Color color, Color onColor, String label) {
     return Container(
       alignment: align,
       padding: const EdgeInsets.symmetric(horizontal: 28),
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+      child: Text(label, style: TextStyle(color: onColor, fontWeight: FontWeight.w800, fontSize: 16)),
     );
   }
 }
