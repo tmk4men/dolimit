@@ -62,7 +62,7 @@ void main() {
     await tester.pumpAndSettle(); // ハブシート表示
 
     expect(find.text('ブースト ¥100（買い切り）'), findsOneWidget);
-    expect(find.text('Pro（買い切り）'), findsOneWidget);
+    expect(find.text('Pro ¥500（買い切り）'), findsOneWidget);
   });
 
   testWidgets('Pro もブーストも購入済みなら「枠を増やす」は出さない', (tester) async {
@@ -90,6 +90,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('ブースト ¥100（買い切り）'), findsNothing);
-    expect(find.text('Pro（買い切り）'), findsOneWidget);
+    expect(find.text('Pro ¥500（買い切り）'), findsOneWidget);
   });
 }

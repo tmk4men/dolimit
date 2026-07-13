@@ -97,7 +97,7 @@ void main() {
       expect(app.isPro, isFalse);
       expect(app.capacityFor(TaskStatus.box), Limits.box);
 
-      await tester.tap(find.text('Proを購入'));
+      await tester.tap(find.text('Proを購入（¥500）'));
       await tester.pumpAndSettle();
 
       expect(purchase.buyCount, 1);
@@ -132,13 +132,13 @@ void main() {
           buyResult: const PurchaseResult(PurchaseOutcome.cancelled, '購入を中止しました'));
       await pumpSheet(tester, app, purchase);
 
-      await tester.tap(find.text('Proを購入'));
+      await tester.tap(find.text('Proを購入（¥500）'));
       await tester.pump();
 
       expect(app.isPro, isFalse);
       expect(find.text('購入を中止しました'), findsOneWidget);
       // ボタンは再び押せる状態に戻る。
-      expect(find.text('Proを購入'), findsOneWidget);
+      expect(find.text('Proを購入（¥500）'), findsOneWidget);
     });
 
     testWidgets('ストア未接続なら理由を出して Pro にしない', (tester) async {
@@ -147,7 +147,7 @@ void main() {
           buyResult: const PurchaseResult(PurchaseOutcome.unavailable, 'ストアに接続できません'));
       await pumpSheet(tester, app, purchase);
 
-      await tester.tap(find.text('Proを購入'));
+      await tester.tap(find.text('Proを購入（¥500）'));
       await tester.pump();
 
       expect(app.isPro, isFalse);
@@ -174,7 +174,7 @@ void main() {
           FakePurchaseService(buyResult: const PurchaseResult(PurchaseOutcome.purchased));
       await pumpSheet(tester, app, purchase);
 
-      expect(find.text('Proを購入'), findsNothing);
+      expect(find.text('Proを購入（¥500）'), findsNothing);
       expect(find.text('解除済み'), findsOneWidget);
     });
 
@@ -205,7 +205,7 @@ void main() {
       ));
       await tester.pump();
 
-      await tester.tap(find.text('Proを購入'));
+      await tester.tap(find.text('Proを購入（¥500）'));
       await tester.pumpAndSettle();
 
       expect(purchase.buyCount, 1, reason: '共有インスタンスで購入が走る');

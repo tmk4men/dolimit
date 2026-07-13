@@ -72,7 +72,7 @@ class _UpgradeSheet extends StatelessWidget {
           if (!app.isBoosted) const SizedBox(height: 10),
           _Option(
             icon: Icons.workspace_premium,
-            title: app.isPro ? 'Pro（解除済み）' : 'Pro（買い切り）',
+            title: app.isPro ? 'Pro（解除済み）' : 'Pro ¥500（買い切り）',
             subtitle: 'BOX/TODAY/LATER/ジャンルの上限をさらに拡張',
             onTap: app.isPro ? null : () => _openThen(context, ProSheet.present),
           ),

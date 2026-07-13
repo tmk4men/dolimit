@@ -94,6 +94,9 @@ class _ProSheetState extends State<ProSheet> {
                 ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text('¥500 の買い切り。上限をまとめて拡張。',
+              style: TextStyle(fontSize: 13, color: context.c.sub)),
           const SizedBox(height: 14),
           _row('BOX', Limits.box, Limits.box + Limits.proBonusBox),
           _row('TODAY', Limits.today, Limits.today + Limits.proBonusToday),
@@ -114,7 +117,7 @@ class _ProSheetState extends State<ProSheet> {
                     ? const SizedBox(
                         width: 20, height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Text(_price == null ? 'Proを購入' : 'Proを購入（$_price）',
+                    : Text('Proを購入（${_price ?? '¥500'}）',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
             ),

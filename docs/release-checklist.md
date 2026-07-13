@@ -21,7 +21,7 @@
 
 ## 4. App 内課金（Pro・ブースト）
 - [ ] App Store Connect / Google Play Console で **非消費型**商品を 2 つ作成（未作成だと「商品が見つかりません」）:
-  - `dolimit_pro` — Pro（上限を拡張）
+  - `dolimit_pro` — Pro（**¥500** の価格帯に設定。上限をまとめて拡張）
   - `dolimit_boost` — ブースト（**¥100** の価格帯に設定。BOX+5 / TODAY+2 / LATER+5 を恒久追加）
 - [ ] サンドボックス / テスターで**両商品**の購入・**復元**を実機確認（`StorePurchaseService`。復元は Pro/ブーストの両方が対象）。
 - [ ] **中断復帰**を実機確認: 購入の途中でアプリを落として再起動しても、次回起動で権利が付与される（起動時に `PurchaseService.init()` がリスナー常駐＋未処理トランザクションを処理し、`onUnlocked` で AppState に反映される）。
