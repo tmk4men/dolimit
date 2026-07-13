@@ -42,7 +42,7 @@
 - [ ] 今回の UI 変更: 各タブ右上の ≡ メニュー →「設定」で設定ページが開く／起動直後は TODAY タブ／夜の精算時刻を過ぎたらホームに「今日の精算」が出る。
 
 ## 8. ストア申請物
-- [ ] **プライバシーポリシーを公開 URL 化**（`docs/privacy-policy.md`。連絡先メールの記入を忘れずに）。
+- [x] **プライバシーポリシーを公開 URL 化**（本文 `docs/privacy-policy.md`。公開先: https://accidental-twine-974.notion.site/Privacy-Policy-ToDo-39cea830abd380dea638ea69253209ee ）。※連絡先メールの記入と、本文更新時の Notion 反映を忘れずに。
 - [ ] アイコン（各サイズ）、スクリーンショット（端末別）、説明文（`docs/store-listing.md`）。
 - [ ] **Data Safety（Google Play）/ App Privacy（Apple）** の申告: 音声入力は OS の音声認識を利用（Apple/Google が処理し得る）、課金はストア処理、開発者による個人情報収集・送信なし、を正しく反映。
 - [ ] サポート URL / 問い合わせ先。
