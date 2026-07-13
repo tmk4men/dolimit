@@ -45,7 +45,7 @@ class GenrePickerSheet extends StatelessWidget {
           if (genres.isEmpty)
             Padding(
               padding: EdgeInsets.all(16),
-              child: Text('ジャンルは Settings で作成できます。',
+              child: Text('ジャンルは設定から作れます。',
                   style: TextStyle(fontSize: 13, color: context.c.sub)),
             ),
           const SizedBox(height: 12),

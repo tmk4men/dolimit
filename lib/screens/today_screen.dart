@@ -166,10 +166,6 @@ class _TodayCleared extends StatelessWidget {
             const SizedBox(height: 16),
             Text('おつかれさま ☺',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: context.c.ink)),
-            const SizedBox(height: 6),
-            Text('きょうぶん、片づいた！',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: context.c.sub)),
             if (streak >= 1) ...[
               const SizedBox(height: 18),
               Container(
