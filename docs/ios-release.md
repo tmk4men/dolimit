@@ -43,6 +43,9 @@ chmod +x scripts/setup_ios.sh
 - `ios/` を生成（バンドルID `com.tmk4men.dolimit`）
 - **アイコンを自動適用**（`dart run flutter_launcher_icons`。App Store用1024pxも含む）
 - Info.plist に表示名「やっとこ」＋マイク/音声認識の権限説明
+- **暗号化の輸出コンプライアンスを「非適用」に固定**（`ITSAppUsesNonExemptEncryption=false`）
+  → 提出時の「暗号化を使用していますか？」が**出なくなる**。本アプリは独自暗号なし・
+  標準HTTPS(Apple/OS)のみ・端末内保存なので false でよい（免除対象）。
 - AppDelegate に通知デリゲート
 
 > `ios/` は `.gitignore` 済み。一度生成すればローカルに残るので、以降の署名設定は消えない（再び `flutter create` しない限り）。

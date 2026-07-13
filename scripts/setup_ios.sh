@@ -40,6 +40,11 @@ set_plist CFBundleDisplayName "$DISPLAY_NAME"
 set_plist NSMicrophoneUsageDescription "音声でタスクを入力するためにマイクを使用します。"
 set_plist NSSpeechRecognitionUsageDescription "話した言葉を文字にしてタスクにするため、音声認識を使用します。"
 
+# 輸出コンプライアンス（暗号化）を「非適用」に固定 → 提出時の暗号化の質問が出ない。
+# 独自暗号なし・標準HTTPS(Apple/OS)のみ・端末内保存のため false でよい。
+/usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST"
+
 echo "==> [5/5] AppDelegate に通知デリゲートを設定"
 cat > ios/Runner/AppDelegate.swift <<'SWIFT'
 import Flutter
