@@ -35,18 +35,18 @@ void main() {
 
     test('TODAY が満杯なら move は失敗する', () async {
       final app = await newState();
-      // BOX を上限まで埋めてから TODAY を満杯にする
-      for (var i = 0; i < Limits.box; i++) {
-        app.addToBox('t$i');
-      }
-      final box = app.tasksIn(TaskStatus.box);
-      for (var i = 0; i < Limits.today; i++) {
-        expect(app.move(box[i], TaskStatus.today), isTrue);
+      // BOX 容量に依らず TODAY を満杯にする（BOX 経由で少しずつ移す）。
+      while (app.count(TaskStatus.today) < Limits.today) {
+        app.addToBox('t');
+        final b = app.tasksIn(TaskStatus.box).first;
+        expect(app.move(b, TaskStatus.today), isTrue);
       }
       expect(app.count(TaskStatus.today), Limits.today);
-      // 11 件目は入らない
-      expect(app.move(box[Limits.today], TaskStatus.today), isFalse);
-      expect(box[Limits.today].status, TaskStatus.box);
+      // 上限を超える 1 件は入らない
+      app.addToBox('overflow');
+      final extra = app.tasksIn(TaskStatus.box).first;
+      expect(app.move(extra, TaskStatus.today), isFalse);
+      expect(extra.status, TaskStatus.box);
     });
   });
 

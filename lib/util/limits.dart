@@ -2,10 +2,10 @@ import '../models/enums.dart';
 
 /// 登録上限。タスクを無限に溜めさせないためのプロダクト中心思想。
 class Limits {
-  static const int box = 15;
+  static const int box = 5;
   static const int today = 10;
-  static const int later = 20;
-  static const int genre = 5;
+  static const int later = 10;
+  static const int genre = 3;
 
   // Pro 購入時に各枠へ加算される拡張ぶん。
   static const int proBonusBox = 10;
