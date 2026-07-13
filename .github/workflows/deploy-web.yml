@@ -43,20 +43,28 @@ jobs:
       # assets/icon/app_icon.png を build/web に焼き込む。
       - name: Apply app name and icon (web)
         run: |
-          # アイコン各サイズを元画像から生成（ImageMagick は ubuntu-latest に同梱）。
-          mkdir -p build/web/icons
-          convert assets/icon/app_icon.png -resize 192x192 build/web/icons/Icon-192.png
-          convert assets/icon/app_icon.png -resize 512x512 build/web/icons/Icon-512.png
-          convert assets/icon/app_icon.png -resize 192x192 build/web/icons/Icon-maskable-192.png
-          convert assets/icon/app_icon.png -resize 512x512 build/web/icons/Icon-maskable-512.png
-          convert assets/icon/app_icon.png -resize 64x64   build/web/favicon.png
-          # 表示名・PWA 名を書き換え（python3 標準ライブラリのみ。pip 不要）。
+          # Pillow で画像を扱う。PEP668 環境でも入るよう --break-system-packages、
+          # 古い pip 向けにフラグ無しをフォールバック。
+          python3 -m pip install --quiet --break-system-packages pillow \
+            || python3 -m pip install --quiet pillow
           python3 - <<'PY'
-          import re, json
+          import re, json, os
+          from PIL import Image
 
           NAME = 'やっとこ'
           DESC = 'やっとこ — 先延ばしにしないToDo。今日やることに絞って決着させるタスク遂行アプリ'
           BG = '#F4F5F7'
+
+          # アイコン各サイズを元画像から生成
+          src = Image.open('assets/icon/app_icon.png').convert('RGBA')
+          os.makedirs('build/web/icons', exist_ok=True)
+          def save(sz, path):
+              src.resize((sz, sz), Image.LANCZOS).save(path)
+          save(192, 'build/web/icons/Icon-192.png')
+          save(512, 'build/web/icons/Icon-512.png')
+          save(192, 'build/web/icons/Icon-maskable-192.png')
+          save(512, 'build/web/icons/Icon-maskable-512.png')
+          save(64,  'build/web/favicon.png')
 
           # index.html の表示名まわり
           f = 'build/web/index.html'
