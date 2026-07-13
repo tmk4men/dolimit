@@ -127,16 +127,16 @@ class NativeNotificationService implements NotificationService {
     if (!settings.notificationsEnabled) return;
 
     await _scheduleDaily(_idMorning, settings.morning.hour,
-        settings.morning.minute, '今日やることを確認しましょう',
-        'BOX と TODAY を見返して、今日の一手を決めましょう。',
+        settings.morning.minute, 'きょうの一手、決めよ',
+        'BOX と TODAY をさらっと見てみよう。',
         NotificationPayload.box);
     await _scheduleDaily(_idMidday, settings.midday.hour,
-        settings.midday.minute, 'TODAY の進み具合は？',
-        '午後です。残りの TODAY を片付けていきましょう。',
+        settings.midday.minute, 'TODAY、どんな感じ？',
+        '残りをちょっとずつ片づけよう。',
         NotificationPayload.today);
     await _scheduleDaily(_idSettlement, settings.settlement.hour,
-        settings.settlement.minute, '今日の精算をしましょう',
-        '未完了の TODAY を「明日も／LATER／完了／削除」で精算します。',
+        settings.settlement.minute, '夜のかたづけ ☾',
+        '残った TODAY を片づけよう。',
         NotificationPayload.settlement);
   }
 
@@ -198,16 +198,16 @@ class NativeNotificationService implements NotificationService {
 
   @override
   Future<void> notifyMovedToToday(String title) => _showInstant(
-      'TODAY へ移動しました', '「$title」を TODAY に移しました。', NotificationPayload.today);
+      'きょうやろう', '「$title」を TODAY に移したよ。', NotificationPayload.today);
 
   @override
-  Future<void> notifyTodayFull(String title) => _showInstant('TODAY が満杯です',
-      '「$title」を移動できません。TODAY を整理してください。', NotificationPayload.today);
+  Future<void> notifyTodayFull(String title) => _showInstant('TODAY、そろそろいっぱい',
+      '「$title」が入らないみたい。少し片づけよう。', NotificationPayload.today);
 
   @override
   Future<void> notifyBanishedToLater(String title) => _showInstant(
-      'LATER へ戻しました',
-      '「$title」は3日連続で未完了のため LATER に戻しました。',
+      'LATER でひとやすみ',
+      '「$title」は少しお休み中。落ち着いたらまた TODAY へ。',
       NotificationPayload.later);
 
   Future<void> _showInstant(String title, String body, String payload) async {

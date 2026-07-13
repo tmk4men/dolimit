@@ -19,7 +19,7 @@ class SettlementScreen extends StatelessWidget {
     final tasks = app.pendingSettlement;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('今日の精算')),
+      appBar: AppBar(title: const Text('夜のかたづけ')),
       body: SafeArea(
         child: tasks.isEmpty
             ? _done(context)
@@ -115,7 +115,7 @@ class SettlementScreen extends StatelessWidget {
           children: [
             Icon(Icons.check_circle_outline, size: 56, color: context.c.ink),
             const SizedBox(height: 16),
-            const Text('精算完了',
+            const Text('おしまい！',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 24),
             FilledButton(

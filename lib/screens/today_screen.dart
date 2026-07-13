@@ -110,14 +110,14 @@ class _TodayScreenState extends State<TodayScreen> {
     final stale = task.consecutiveUnfinishedDays >= 3;
     // LATER が満杯で追放できないタスクは TODAY に留まる。理由を見せる。
     final subtitle = task.pendingAutoMoveToLater
-        ? '${task.ageLabel}  ·  追放待ち（LATERが満杯）'
+        ? '${task.ageLabel}  ·  LATER待ち'
         : task.ageLabel;
     return TaskCard(
       task: task,
       genre: app.genreById(task.genreId),
       subtitle: subtitle,
       subtitleColor: stale ? context.c.todayAccent : context.c.sub,
-      onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
+      onToggle: () { app.complete(task); showUndoSnack(context, 'できた！'); },
       onTapBody: () => EditTaskSheet.present(context, task),
       menu: [
         TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
@@ -164,10 +164,10 @@ class _TodayCleared extends StatelessWidget {
               child: Icon(Icons.check_circle_rounded, size: 38, color: context.c.todayAccent),
             ),
             const SizedBox(height: 16),
-            Text('今日は決着！',
+            Text('おつかれさま ☺',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: context.c.ink)),
             const SizedBox(height: 6),
-            Text('TODAYを片づけました。おつかれさま。',
+            Text('きょうぶん、片づいた！',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: context.c.sub)),
             if (streak >= 1) ...[
@@ -180,7 +180,7 @@ class _TodayCleared extends StatelessWidget {
                   children: [
                     const Text('🔥', style: TextStyle(fontSize: 15)),
                     const SizedBox(width: 6),
-                    Text('$streak日連続で決着',
+                    Text('$streak日つづいてる',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: context.c.ink2)),
                   ],
                 ),
@@ -209,7 +209,7 @@ class _SettlementButton extends StatelessWidget {
         children: [
           Icon(Icons.nights_stay_outlined, color: context.c.bg, size: 22),
           const SizedBox(width: 12),
-          Text('今日の精算', style: TextStyle(color: context.c.bg, fontWeight: FontWeight.w800, fontSize: 16)),
+          Text('夜のかたづけ', style: TextStyle(color: context.c.bg, fontWeight: FontWeight.w800, fontSize: 16)),
           const Spacer(),
           Icon(Icons.chevron_right, color: context.c.bg.withOpacity(0.7), size: 20),
         ],

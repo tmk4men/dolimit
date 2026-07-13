@@ -40,9 +40,9 @@ class Limits {
       };
 
   static String fullMessage(TaskStatus status) => switch (status) {
-        TaskStatus.box => 'BOXがいっぱいです。先に仕分けてください。',
-        TaskStatus.today => 'TODAYがいっぱいです。1件完了するか、LATERへ移動してください。',
-        TaskStatus.later => 'LATERがいっぱいです。整理してください。',
+        TaskStatus.box => 'BOX、そろそろいっぱい',
+        TaskStatus.today => 'TODAY、そろそろいっぱい',
+        TaskStatus.later => 'LATER、そろそろいっぱい',
         _ => '',
       };
 }

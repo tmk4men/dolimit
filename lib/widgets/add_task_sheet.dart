@@ -53,8 +53,8 @@ class AddTaskSheet extends StatefulWidget {
     return showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('BOXがいっぱいです'),
-        content: Text('$cap個たまっています。先に仕分けてください。'),
+        title: const Text('BOX、そろそろいっぱい'),
+        content: Text('$cap個たまってるよ。'),
         actions: [
           TextButton(
             onPressed: () {

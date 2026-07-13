@@ -107,8 +107,8 @@ void main() {
       notifier.tap(NotificationPayload.settlement);
       await tester.pumpAndSettle();
 
-      expect(find.text('今日の精算'), findsWidgets);
-      expect(find.text('精算完了'), findsOneWidget, reason: 'TODAY が空なので完了表示');
+      expect(find.text('夜のかたづけ'), findsWidgets);
+      expect(find.text('おしまい！'), findsOneWidget, reason: 'TODAY が空なので完了表示');
     });
 
     testWidgets('連続タップしても精算画面は積み重ならない', (tester) async {

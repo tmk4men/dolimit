@@ -106,7 +106,7 @@ class _LaterScreenState extends State<LaterScreen> {
       genre: app.genreById(task.genreId),
       subtitle: parts.isEmpty ? '開始日なし' : parts.join('  ·  '),
       subtitleColor: flagged ? context.c.todayAccent : context.c.laterAccent,
-      onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
+      onToggle: () { app.complete(task); showUndoSnack(context, 'できた！'); },
       onTapBody: () => LaterDetailSheet.present(context, task),
       menu: [
         TaskMenuAction('TODAYへ移動', Icons.wb_sunny_outlined, () {

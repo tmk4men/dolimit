@@ -34,36 +34,38 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.laterSoft,
   });
 
+  // ゆるいトーン：生成りの地に、暖かいコーラルとくすみティール。
+  // アクセントはテキストにも使うので可読性を確保した少し深めの色にしている。
   static const light = AppColors(
-    ink: Color(0xFF17181C),
-    ink2: Color(0xFF55575F),
-    sub: Color(0xFF9395A0),
-    line: Color(0xFFEAEBEF),
-    bg: Color(0xFFF4F5F7),
-    card: Colors.white,
-    fill: Color(0xFFEFF0F3),
-    boxAccent: Color(0xFF9A9CA6),
-    boxSoft: Color(0xFFEDEEF1),
-    todayAccent: Color(0xFFF23B30),
-    todaySoft: Color(0xFFFFE8E5),
-    laterAccent: Color(0xFF2E6BF0),
-    laterSoft: Color(0xFFE6EEFE),
+    ink: Color(0xFF4A443E), // やわらかい茶グレー
+    ink2: Color(0xFF7A736A),
+    sub: Color(0xFFA99E8D),
+    line: Color(0xFFEDE6DA),
+    bg: Color(0xFFFAF6EF), // 生成り・クリーム
+    card: Color(0xFFFFFDF8),
+    fill: Color(0xFFF1EBE1),
+    boxAccent: Color(0xFFA99E8D),
+    boxSoft: Color(0xFFEFE7DB),
+    todayAccent: Color(0xFFDC6A4B), // 暖かいコーラル/テラコッタ
+    todaySoft: Color(0xFFFBE7DE),
+    laterAccent: Color(0xFF3F8F86), // くすみティール
+    laterSoft: Color(0xFFE2F0ED),
   );
 
   static const dark = AppColors(
-    ink: Color(0xFFECEDF1),
-    ink2: Color(0xFFB7BAC4),
-    sub: Color(0xFF868995),
-    line: Color(0xFF2A2C33),
-    bg: Color(0xFF0F1013),
-    card: Color(0xFF1A1C21),
-    fill: Color(0xFF23262D),
-    boxAccent: Color(0xFF868995),
-    boxSoft: Color(0xFF262A31),
-    todayAccent: Color(0xFFFF5B50),
-    todaySoft: Color(0xFF3A2320),
-    laterAccent: Color(0xFF5E8CFF),
-    laterSoft: Color(0xFF1D2A45),
+    ink: Color(0xFFECE5D9),
+    ink2: Color(0xFFB9AF9E),
+    sub: Color(0xFF8B8171),
+    line: Color(0xFF302A20),
+    bg: Color(0xFF16130E), // 暖かい黒
+    card: Color(0xFF201C15),
+    fill: Color(0xFF2A251D),
+    boxAccent: Color(0xFF8B8171),
+    boxSoft: Color(0xFF262019),
+    todayAccent: Color(0xFFF0906E),
+    todaySoft: Color(0xFF33221A),
+    laterAccent: Color(0xFF74B8AF),
+    laterSoft: Color(0xFF1B2A27),
   );
 
   @override
@@ -125,42 +127,43 @@ extension AppColorsContext on BuildContext {
   AppColors get c => Theme.of(this).extension<AppColors>() ?? AppColors.light;
 }
 
-/// デザイントークン。白 / 黒 / グレー基調。TODAY だけ赤、LATER だけ青を使う。
+/// デザイントークン。生成り基調のゆるいトーン。TODAY はコーラル、LATER はティール。
+/// 実際の描画は `context.c.<token>`（[AppColors]）を使う。以下の静的値は参考。
 class AppTheme {
   // ---- ニュートラル ----
-  static const Color ink = Color(0xFF17181C); // 主要テキスト（ほぼ黒）
-  static const Color ink2 = Color(0xFF55575F); // 副次テキスト（濃いグレー）
-  static const Color sub = Color(0xFF9395A0); // 補助テキスト
-  static const Color line = Color(0xFFEAEBEF); // ヘアライン
-  static const Color bg = Color(0xFFF4F5F7); // 画面背景
-  static const Color card = Colors.white; // カード面
-  static const Color fill = Color(0xFFEFF0F3); // 入力欄など
+  static const Color ink = Color(0xFF4A443E);
+  static const Color ink2 = Color(0xFF7A736A);
+  static const Color sub = Color(0xFFA99E8D);
+  static const Color line = Color(0xFFEDE6DA);
+  static const Color bg = Color(0xFFFAF6EF);
+  static const Color card = Color(0xFFFFFDF8);
+  static const Color fill = Color(0xFFF1EBE1);
 
   // ---- アクセント（箱ごと）----
-  static const Color boxAccent = Color(0xFF9A9CA6);
-  static const Color boxSoft = Color(0xFFEDEEF1);
+  static const Color boxAccent = Color(0xFFA99E8D);
+  static const Color boxSoft = Color(0xFFEFE7DB);
 
-  static const Color todayAccent = Color(0xFFF23B30); // 赤
-  static const Color todaySoft = Color(0xFFFFE8E5);
+  static const Color todayAccent = Color(0xFFDC6A4B); // コーラル
+  static const Color todaySoft = Color(0xFFFBE7DE);
 
-  static const Color laterAccent = Color(0xFF2E6BF0); // 青
-  static const Color laterSoft = Color(0xFFE6EEFE);
+  static const Color laterAccent = Color(0xFF3F8F86); // ティール
+  static const Color laterSoft = Color(0xFFE2F0ED);
 
   // ---- 形 ----
-  static const double cardRadius = 22;
+  static const double cardRadius = 24;
   static const double spacing = 16;
 
   static const BorderRadius radiusCard = BorderRadius.all(Radius.circular(cardRadius));
   static const BorderRadius radiusSheet = BorderRadius.vertical(top: Radius.circular(28));
   static const BorderRadius radiusPill = BorderRadius.all(Radius.circular(999));
 
-  // ---- 影（やわらかく層を作る）----
+  // ---- 影（暖かく、ふんわり）----
   static const List<BoxShadow> cardShadow = [
-    BoxShadow(color: Color(0x0A000000), blurRadius: 2, offset: Offset(0, 1)),
-    BoxShadow(color: Color(0x12000000), blurRadius: 18, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x0F5A4B38), blurRadius: 3, offset: Offset(0, 1)),
+    BoxShadow(color: Color(0x14705B42), blurRadius: 24, offset: Offset(0, 10)),
   ];
   static const List<BoxShadow> floatShadow = [
-    BoxShadow(color: Color(0x26000000), blurRadius: 22, offset: Offset(0, 10)),
+    BoxShadow(color: Color(0x226B5230), blurRadius: 26, offset: Offset(0, 12)),
   ];
 
   static ThemeData light() => _build(Brightness.light, AppColors.light);

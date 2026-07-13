@@ -69,7 +69,7 @@ class BoxScreen extends StatelessWidget {
       child: TaskCard(
         task: task,
         genre: app.genreById(task.genreId),
-        onToggle: () { app.complete(task); showUndoSnack(context, '完了にしました'); },
+        onToggle: () { app.complete(task); showUndoSnack(context, 'できた！'); },
         onTapBody: () => EditTaskSheet.present(context, task),
         menu: [
           TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),

@@ -124,7 +124,7 @@ void main() {
         await tester.pumpAndSettle();
       }
 
-      expect(find.text('精算完了'), findsOneWidget);
+      expect(find.text('おしまい！'), findsOneWidget);
     });
 
     testWidgets('LATER が満杯だと「LATERへ移動」でメッセージが出る', (tester) async {

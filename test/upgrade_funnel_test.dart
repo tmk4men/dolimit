@@ -54,7 +54,7 @@ void main() {
     await tester.pump(); // スナックバー生成
     await tester.pump(const Duration(milliseconds: 800)); // 登場アニメ完了
 
-    expect(find.text('TODAYがいっぱいです。1件完了するか、LATERへ移動してください。'),
+    expect(find.text('TODAY、そろそろいっぱい'),
         findsOneWidget);
     expect(find.text('枠を増やす'), findsOneWidget);
 

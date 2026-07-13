@@ -258,7 +258,7 @@ void main() {
       final app = await newState();
       await pumpFullBox(tester, app);
 
-      expect(find.text('BOXがいっぱいです'), findsOneWidget);
+      expect(find.text('BOX、そろそろいっぱい'), findsOneWidget);
       expect(find.text('¥100で枠を増やす（+${Limits.boostBonusBox}）'), findsOneWidget);
       expect(find.text('Proで枠を増やす'), findsOneWidget);
     });
@@ -268,7 +268,7 @@ void main() {
       app.setBoost(true);
       await pumpFullBox(tester, app);
 
-      expect(find.text('BOXがいっぱいです'), findsOneWidget);
+      expect(find.text('BOX、そろそろいっぱい'), findsOneWidget);
       expect(find.text('¥100で枠を増やす（+${Limits.boostBonusBox}）'), findsNothing);
       expect(find.text('Proで枠を増やす'), findsOneWidget);
     });
