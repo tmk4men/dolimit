@@ -13,23 +13,21 @@
 - [ ] ランチャーの表示名を「やっとこ」に設定（`<application android:label="やっとこ">`）。※ `--project-name dolimit` は内部識別子なので変えなくてよい。
 - [ ] `POST_NOTIFICATIONS`（Android 13+）を追加。※ inexact スケジュールなので `SCHEDULE_EXACT_ALARM` は不要。
 - [ ] 音声入力: `RECORD_AUDIO` 権限 と `<queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries>`。
-- [ ] （広告を入れる場合のみ）AdMob アプリ ID `com.google.android.gms.ads.APPLICATION_ID`。
 
 ## 3. iOS（`Info.plist`）
 - [ ] 表示名を「やっとこ」に設定（`CFBundleDisplayName`）。
 - [ ] 音声入力: `NSMicrophoneUsageDescription` と `NSSpeechRecognitionUsageDescription`。
 - [ ] 通知・バッジ権限は起動時に要求済み（`main.dart`）。実機で許可ダイアログが出ることを確認。
-- [ ] （広告を入れる場合のみ）`GADApplicationIdentifier`。
 
-## 4. App 内課金（Pro）
-- [ ] App Store Connect / Google Play Console で **非消費型**商品 **`dolimit_pro`** を作成（未作成だと「商品が見つかりません」）。
-- [ ] サンドボックス / テスターで購入・**復元**を実機確認（`StorePurchaseService`）。
+## 4. App 内課金（Pro・ブースト）
+- [ ] App Store Connect / Google Play Console で **非消費型**商品を 2 つ作成（未作成だと「商品が見つかりません」）:
+  - `dolimit_pro` — Pro（上限を拡張）
+  - `dolimit_boost` — ブースト（**¥100** の価格帯に設定。BOX+5 / TODAY+2 / LATER+5 を恒久追加）
+- [ ] サンドボックス / テスターで**両商品**の購入・**復元**を実機確認（`StorePurchaseService`。復元は Pro/ブーストの両方が対象）。
 - [ ] Play の「アプリのコンテンツ」で課金の申告。
 
-## 5. 広告（任意・現状は未接続）
-- [ ] 枠拡張のロジック（24h: BOX+5 / TODAY+2 / LATER+5）は実装済み。表示は `RewardedAdService` の差し込み口のみ（`StubRewardedAdService`）。
-- [ ] 導入するなら: AdMob アカウント作成 → アプリ ID をマニフェスト/Plist に設定 → `google_mobile_ads` 追加 → `StubRewardedAdService` を実装に差し替え。
-- [ ] 導入する場合は**プライバシーポリシーと Data Safety の申告を更新**（`docs/privacy-policy.md` の第 8 項参照）。
+## 5. 広告
+- [ ] **広告は使わない**（`RewardedAdService` は撤去済み）。枠拡張はブースト（§4 の `dolimit_boost`, ¥100 買い切り）に一本化。将来も導入しない方針。
 
 ## 6. ホーム画面ウィジェット
 - [ ] Dart 側のデータ供給・タップ遷移は実装済み。ネイティブ表示は `native_widget_reference/`（Android AppWidgetProvider+XML / iOS WidgetKit）を各プラットフォームへ組み込み。
