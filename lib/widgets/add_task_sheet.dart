@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/speech_service.dart';
@@ -191,13 +192,10 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
     // padding の bottom にキーボード高さを足して、シート全体をその上へ乗せる。
     // reverse は使わない：内容が溢れたときは上（タイトル・入力欄）を残し、
     // フォーカス中の入力欄はフレームワークが自動で見える位置へ送る。
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 6),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
             const SheetHandle(),
             const SizedBox(height: 6),
             Text('${_label(widget.target)}に追加',
@@ -277,9 +275,27 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
               ),
             ),
             const SizedBox(height: 14),
-          ],
+      ],
+    );
+
+    // Web（特に iOS Safari）はソフトキーボードで viewInsets が更新されず、
+    // 通常のボトムシートだと入力欄がキーボードの裏に完全に隠れてしまう。
+    // Web ではシートを高く取り、内容を上部へ寄せてキーボードに被らせない。
+    if (kIsWeb) {
+      final h = MediaQuery.sizeOf(context).height;
+      return SizedBox(
+        height: h * 0.92,
+        child: SingleChildScrollView(
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 6, bottom: 20),
+          child: content,
         ),
-      ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 6),
+      child: SingleChildScrollView(child: content),
     );
   }
 }
