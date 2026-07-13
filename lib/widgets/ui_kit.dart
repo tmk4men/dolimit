@@ -149,7 +149,7 @@ class ScreenHeader extends StatelessWidget {
                   color: full ? context.c.todaySoft : context.c.boxSoft,
                   borderRadius: AppTheme.radiusPill,
                 ),
-                child: Text(nearFull ? '$count/$capacity' : '$count',
+                child: Text('$count/$capacity',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
