@@ -35,6 +35,9 @@ abstract class PurchaseService {
   /// 課金が利用可能か（ストア接続・商品取得可否）。
   Future<bool> isAvailable();
 
+  /// 商品のローカライズ価格文字列（例: "¥100"）。取得できなければ null。
+  Future<String?> priceOf(String productId);
+
   /// Pro を購入する。
   Future<PurchaseResult> buyPro();
 
@@ -55,6 +58,9 @@ abstract class PurchaseService {
 class StubPurchaseService implements PurchaseService {
   @override
   Future<bool> isAvailable() async => false;
+
+  @override
+  Future<String?> priceOf(String productId) async => null;
 
   @override
   Future<PurchaseResult> buyPro() async =>

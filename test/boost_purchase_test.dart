@@ -29,6 +29,9 @@ class FakePurchaseService implements PurchaseService {
   Future<bool> isAvailable() async => true;
 
   @override
+  Future<String?> priceOf(String productId) async => null;
+
+  @override
   Future<PurchaseResult> buyPro() async {
     buyCount++;
     return buyResult;

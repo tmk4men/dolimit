@@ -6,6 +6,7 @@ import '../services/purchase_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import 'pro_sheet.dart';
 import 'ui_kit.dart';
 
 /// 「ブーストで枠を増やす」導線。¥100 の買い切りで、BOX/TODAY/LATER の上限を
@@ -36,6 +37,15 @@ class BoostSheet extends StatefulWidget {
 class _BoostSheetState extends State<BoostSheet> {
   late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
   bool _busy = false;
+  String? _price; // ストアのローカライズ価格（取得できたら表示。既定は ¥100）
+
+  @override
+  void initState() {
+    super.initState();
+    _purchase.priceOf(PurchaseService.boostProductId).then((p) {
+      if (mounted) setState(() => _price = p);
+    });
+  }
 
   @override
   void dispose() {
@@ -64,6 +74,7 @@ class _BoostSheetState extends State<BoostSheet> {
   @override
   Widget build(BuildContext context) {
     final owned = context.select<AppState, bool>((s) => s.isBoosted);
+    final isPro = context.select<AppState, bool>((s) => s.isPro);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
       child: Column(
@@ -111,7 +122,8 @@ class _BoostSheetState extends State<BoostSheet> {
                     ? const SizedBox(
                         width: 20, height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('¥100で購入', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    : Text('${_price ?? '¥100'}で購入',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
             ),
             const SizedBox(height: 6),
@@ -139,6 +151,15 @@ class _BoostSheetState extends State<BoostSheet> {
                 onPressed: () => context.read<AppState>().setBoost(false),
                 child: Text('開発用: ブーストを解除して戻す（debug）',
                     style: TextStyle(color: context.c.sub)),
+              ),
+            ),
+          // Pro への相互リンク（未購入時のみ）。上限をもっと増やしたい人向け。
+          if (!isPro)
+            Center(
+              child: TextButton(
+                onPressed: () => ProSheet.present(context),
+                child: Text('上限をもっと増やすなら Pro',
+                    style: TextStyle(color: context.c.sub, fontSize: 12.5)),
               ),
             ),
         ],

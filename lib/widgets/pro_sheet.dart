@@ -6,6 +6,7 @@ import '../services/purchase_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
+import 'boost_sheet.dart';
 import 'ui_kit.dart';
 
 /// 「Proで枠を増やす」導線。購入・復元を行い、成功したら [AppState.setPro] で解除。
@@ -34,6 +35,15 @@ class ProSheet extends StatefulWidget {
 class _ProSheetState extends State<ProSheet> {
   late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
   bool _busy = false;
+  String? _price; // ストアのローカライズ価格（取得できたら表示）
+
+  @override
+  void initState() {
+    super.initState();
+    _purchase.priceOf(PurchaseService.proProductId).then((p) {
+      if (mounted) setState(() => _price = p);
+    });
+  }
 
   @override
   void dispose() {
@@ -62,6 +72,7 @@ class _ProSheetState extends State<ProSheet> {
   @override
   Widget build(BuildContext context) {
     final isPro = context.select<AppState, bool>((s) => s.isPro);
+    final isBoosted = context.select<AppState, bool>((s) => s.isBoosted);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
       child: Column(
@@ -107,7 +118,8 @@ class _ProSheetState extends State<ProSheet> {
                     ? const SizedBox(
                         width: 20, height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Proを購入', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    : Text(_price == null ? 'Proを購入' : 'Proを購入（$_price）',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
             ),
             const SizedBox(height: 6),
@@ -135,6 +147,15 @@ class _ProSheetState extends State<ProSheet> {
                 onPressed: () => context.read<AppState>().setPro(false),
                 child: Text('開発用: Pro を解除して戻す（debug）',
                     style: TextStyle(color: context.c.sub)),
+              ),
+            ),
+          // ブーストへの相互リンク（未購入時のみ）。
+          if (!isBoosted)
+            Center(
+              child: TextButton(
+                onPressed: () => BoostSheet.present(context),
+                child: Text('または ¥100 のブースト（買い切り）で少し増やす',
+                    style: TextStyle(color: context.c.sub, fontSize: 12.5)),
               ),
             ),
         ],

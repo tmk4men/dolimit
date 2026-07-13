@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/genre.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../util/limits.dart';
+import '../widgets/pro_sheet.dart';
+import '../widgets/ui_kit.dart';
 
 /// ジャンル管理（アプリ全体で最大 5 個）
 class GenreManagementScreen extends StatelessWidget {
@@ -33,6 +36,30 @@ class GenreManagementScreen extends StatelessWidget {
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // ジャンル上限に達していて未 Pro なら、Pro で増やす導線を出す。
+                  if (genres.length >= app.genreCap && !app.isPro) ...[
+                    PressableCard(
+                      onTap: () => ProSheet.present(context),
+                      color: context.c.boxSoft,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
+                      child: Row(
+                        children: [
+                          Icon(Icons.workspace_premium, color: context.c.ink),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                                'ジャンルは最大${app.genreCap}個。Proでさらに+${Limits.proBonusGenre}個。',
+                                style: const TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w700)),
+                          ),
+                          Icon(Icons.chevron_right,
+                              color: context.c.sub, size: 20),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   for (final g in genres)
                     Card(
                       color: context.c.card,

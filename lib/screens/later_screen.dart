@@ -5,7 +5,6 @@ import '../models/enums.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../util/limits.dart';
 import '../util/day_clock.dart';
 import '../widgets/app_menu_button.dart';
 import '../widgets/task_card.dart';
@@ -15,6 +14,7 @@ import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 import '../widgets/later_detail_sheet.dart';
 import '../widgets/undo_snack.dart';
+import '../widgets/upgrade.dart';
 
 /// あとでやるタスク。開始日順にグループ表示。
 class LaterScreen extends StatefulWidget {
@@ -113,8 +113,7 @@ class _LaterScreenState extends State<LaterScreen> {
           if (app.move(task, TaskStatus.today)) {
             showUndoSnack(context, 'TODAYへ移動しました');
           } else {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.today))));
+            showCapacityFullSnack(context, TaskStatus.today);
           }
         }),
         TaskMenuAction('開始日 / 通知を設定', Icons.event_outlined, () => LaterDetailSheet.present(context, task)),

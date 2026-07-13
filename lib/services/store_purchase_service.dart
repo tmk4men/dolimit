@@ -47,6 +47,19 @@ class StorePurchaseService implements PurchaseService {
   }
 
   @override
+  Future<String?> priceOf(String productId) async {
+    try {
+      if (!await isAvailable()) return null;
+      final resp = await _iap.queryProductDetails({productId});
+      if (resp.error != null || resp.productDetails.isEmpty) return null;
+      return resp.productDetails.first.price; // ストアのローカライズ価格
+    } catch (e) {
+      debugPrint('StorePurchaseService: priceOf failed: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<PurchaseResult> buyPro() => _buy(PurchaseService.proProductId);
 
   @override

@@ -9,6 +9,7 @@ import '../util/limits.dart';
 import 'boost_sheet.dart';
 import 'pro_sheet.dart';
 import 'ui_kit.dart';
+import 'upgrade.dart';
 
 /// ＋ から開くタスク追加シート。入力はタスク名のみ。
 ///
@@ -32,8 +33,7 @@ class AddTaskSheet extends StatefulWidget {
       if (target == TaskStatus.box) {
         await _showBoxFullAlert(context, onSort);
       } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(Limits.fullMessage(target))));
+        showCapacityFullSnack(context, target);
       }
       return;
     }
@@ -172,10 +172,13 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
         source: _usedVoice ? TaskSource.voice : TaskSource.manual);
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
-    messenger.showSnackBar(SnackBar(
-        content: Text(ok
-            ? '${_label(target)}に追加しました'
-            : Limits.fullMessage(target))));
+    if (ok) {
+      messenger.showSnackBar(
+          SnackBar(content: Text('${_label(target)}に追加しました')));
+    } else {
+      // 満杯なら「枠を増やす」導線つきで知らせる。
+      showCapacityFullSnack(context, target);
+    }
   }
 
   /// 追加先の枠名（画面文言用）。

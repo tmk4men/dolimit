@@ -5,13 +5,13 @@ import '../models/enums.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../util/limits.dart';
 import '../widgets/app_menu_button.dart';
 import '../widgets/task_card.dart';
 import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 import '../widgets/undo_snack.dart';
+import '../widgets/upgrade.dart';
 
 /// 未分類タスクを仕分ける場所。右スワイプ=TODAY / 左スワイプ=LATER。削除はスワイプに含めない。
 class BoxScreen extends StatelessWidget {
@@ -62,8 +62,7 @@ class BoxScreen extends StatelessWidget {
         if (ok) {
           showUndoSnack(context, target == TaskStatus.today ? 'TODAYへ移動しました' : 'LATERへ移動しました');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(Limits.fullMessage(target))));
+          showCapacityFullSnack(context, target);
         }
         return ok;
       },

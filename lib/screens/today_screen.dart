@@ -5,7 +5,6 @@ import '../models/enums.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../util/limits.dart';
 import '../widgets/app_menu_button.dart';
 import '../widgets/remaining_time.dart';
 import '../widgets/task_card.dart';
@@ -14,6 +13,7 @@ import '../widgets/ui_kit.dart';
 import '../widgets/edit_task_sheet.dart';
 import '../widgets/genre_picker_sheet.dart';
 import '../widgets/undo_snack.dart';
+import '../widgets/upgrade.dart';
 import 'settlement_screen.dart';
 
 /// 今日やるタスク。並び替え（Drag & Drop）対応。
@@ -126,8 +126,7 @@ class _TodayScreenState extends State<TodayScreen> {
           if (app.move(task, TaskStatus.later)) {
             showUndoSnack(context, 'LATERへ移動しました');
           } else {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(Limits.fullMessage(TaskStatus.later))));
+            showCapacityFullSnack(context, TaskStatus.later);
           }
         }),
         TaskMenuAction('削除', Icons.delete_outline,

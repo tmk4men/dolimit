@@ -5,8 +5,8 @@ import '../models/enums.dart';
 import '../models/task.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../util/limits.dart';
 import '../widgets/genre_chip.dart';
+import '../widgets/upgrade.dart';
 
 /// 今日の精算。TODAY に残る未完了タスクを 1 件ずつ「残す？戻す？消す？」
 class SettlementScreen extends StatelessWidget {
@@ -73,8 +73,7 @@ class SettlementScreen extends StatelessWidget {
           _btn(context, 'LATERへ移動', Icons.nightlight, context.c.laterAccent,
               () {
             if (!app.settleMoveToLater(task)) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(Limits.fullMessage(TaskStatus.later))));
+              showCapacityFullSnack(context, TaskStatus.later);
             }
           }),
           const SizedBox(height: 10),
