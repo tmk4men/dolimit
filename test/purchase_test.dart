@@ -24,6 +24,12 @@ class FakePurchaseService implements PurchaseService {
   int disposeCount = 0;
 
   @override
+  Future<void> init() async {}
+
+  @override
+  set onUnlocked(void Function(String productId)? handler) {}
+
+  @override
   Future<bool> isAvailable() async => true;
 
   @override
@@ -182,6 +188,29 @@ void main() {
       await tester.pump();
 
       expect(purchase.disposeCount, 0, reason: '所有していないものは破棄しない');
+    });
+
+    testWidgets('service 未注入なら Provider の共有インスタンスを使う（都度生成しない）',
+        (tester) async {
+      final app = await newState();
+      final purchase = FakePurchaseService(
+          buyResult: const PurchaseResult(
+              PurchaseOutcome.purchased, null, {PurchaseService.proProductId}));
+      await tester.pumpWidget(MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: app),
+          Provider<PurchaseService>.value(value: purchase),
+        ],
+        child: const MaterialApp(home: Scaffold(body: ProSheet())),
+      ));
+      await tester.pump();
+
+      await tester.tap(find.text('Proを購入'));
+      await tester.pumpAndSettle();
+
+      expect(purchase.buyCount, 1, reason: '共有インスタンスで購入が走る');
+      expect(app.isPro, isTrue);
+      expect(purchase.disposeCount, 0, reason: '共有インスタンスは破棄しない');
     });
   });
 

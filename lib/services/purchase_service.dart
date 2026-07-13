@@ -32,6 +32,15 @@ abstract class PurchaseService {
   /// ブースト（¥100 の買い切り。BOX/TODAY/LATER の枠を恒久的に少し広げる）。
   static const String boostProductId = 'dolimit_boost';
 
+  /// アプリ起動時に一度呼ぶ。ストア接続を温め、商品情報を事前取得し、
+  /// 前回セッションで中断した未処理トランザクションを処理できる状態にする。
+  /// これを起動時に済ませておくことで「開いて即購入」でのラグ・失敗を防ぐ。
+  Future<void> init();
+
+  /// 購入／復元で商品が解放されたとき（起動時に届く中断トランザクション含む）に
+  /// 呼ばれるハンドラ。購入シートが閉じていても確実に権利を付与するために使う。
+  set onUnlocked(void Function(String productId)? handler);
+
   /// 課金が利用可能か（ストア接続・商品取得可否）。
   Future<bool> isAvailable();
 
@@ -56,6 +65,12 @@ abstract class PurchaseService {
 
 /// 未接続環境（Web など）向けのスタブ。購入は行わず「準備中」を返す。
 class StubPurchaseService implements PurchaseService {
+  @override
+  Future<void> init() async {}
+
+  @override
+  set onUnlocked(void Function(String productId)? handler) {}
+
   @override
   Future<bool> isAvailable() async => false;
 

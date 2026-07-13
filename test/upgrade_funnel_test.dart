@@ -7,28 +7,9 @@ import 'package:dolimit/app.dart' show appNavigatorKey;
 import 'package:dolimit/data/store.dart';
 import 'package:dolimit/models/enums.dart';
 import 'package:dolimit/services/notification_service.dart';
-import 'package:dolimit/services/purchase_service.dart';
 import 'package:dolimit/services/speech_service.dart';
 import 'package:dolimit/state/app_state.dart';
 import 'package:dolimit/widgets/upgrade.dart';
-
-class _StubPurchase implements PurchaseService {
-  @override
-  Future<bool> isAvailable() async => false;
-  @override
-  Future<String?> priceOf(String productId) async => null;
-  @override
-  Future<PurchaseResult> buyPro() async =>
-      const PurchaseResult(PurchaseOutcome.unavailable);
-  @override
-  Future<PurchaseResult> buyBoost() async =>
-      const PurchaseResult(PurchaseOutcome.unavailable);
-  @override
-  Future<PurchaseResult> restore() async =>
-      const PurchaseResult(PurchaseOutcome.unavailable);
-  @override
-  void dispose() {}
-}
 
 Future<AppState> newState() async {
   SharedPreferences.setMockInitialValues({});

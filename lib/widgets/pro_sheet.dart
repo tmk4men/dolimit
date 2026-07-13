@@ -33,7 +33,10 @@ class ProSheet extends StatefulWidget {
 }
 
 class _ProSheetState extends State<ProSheet> {
-  late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
+  // 省略時はアプリ起動時に温めた共有インスタンスを使う（都度生成しない＝
+  // 接続のラグや中断トランザクション取りこぼしを避ける）。破棄もしない。
+  late final PurchaseService _purchase =
+      widget.service ?? context.read<PurchaseService>();
   bool _busy = false;
   String? _price; // ストアのローカライズ価格（取得できたら表示）
 
@@ -43,13 +46,6 @@ class _ProSheetState extends State<ProSheet> {
     _purchase.priceOf(PurchaseService.proProductId).then((p) {
       if (mounted) setState(() => _price = p);
     });
-  }
-
-  @override
-  void dispose() {
-    // 自前で作った実装だけ後始末する。注入されたものは所有していない。
-    if (widget.service == null) _purchase.dispose();
-    super.dispose();
   }
 
   Future<void> _run(Future<PurchaseResult> Function() action) async {

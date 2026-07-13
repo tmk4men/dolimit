@@ -26,6 +26,12 @@ class FakePurchaseService implements PurchaseService {
   int disposeCount = 0;
 
   @override
+  Future<void> init() async {}
+
+  @override
+  set onUnlocked(void Function(String productId)? handler) {}
+
+  @override
   Future<bool> isAvailable() async => true;
 
   @override

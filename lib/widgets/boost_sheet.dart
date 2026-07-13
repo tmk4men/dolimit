@@ -35,7 +35,9 @@ class BoostSheet extends StatefulWidget {
 }
 
 class _BoostSheetState extends State<BoostSheet> {
-  late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
+  // 省略時はアプリ起動時に温めた共有インスタンスを使う（都度生成しない）。破棄もしない。
+  late final PurchaseService _purchase =
+      widget.service ?? context.read<PurchaseService>();
   bool _busy = false;
   String? _price; // ストアのローカライズ価格（取得できたら表示。既定は ¥100）
 
@@ -45,13 +47,6 @@ class _BoostSheetState extends State<BoostSheet> {
     _purchase.priceOf(PurchaseService.boostProductId).then((p) {
       if (mounted) setState(() => _price = p);
     });
-  }
-
-  @override
-  void dispose() {
-    // 自前で作った実装だけ後始末する。注入されたものは所有していない。
-    if (widget.service == null) _purchase.dispose();
-    super.dispose();
   }
 
   Future<void> _run(Future<PurchaseResult> Function() action) async {

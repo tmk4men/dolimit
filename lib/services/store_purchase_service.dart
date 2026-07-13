@@ -30,6 +30,32 @@ class StorePurchaseService implements PurchaseService {
   /// 進行中の購入／復元。ストリームの到着で完了させる。
   Completer<PurchaseResult>? _pending;
 
+  /// 商品情報の事前取得キャッシュ（購入時の再取得ラグをなくす）。
+  final Map<String, ProductDetails> _products = {};
+
+  /// 購入／復元で商品が解放されたときのハンドラ（起動時の中断分含む）。
+  void Function(String productId)? _onUnlocked;
+
+  @override
+  set onUnlocked(void Function(String productId)? handler) =>
+      _onUnlocked = handler;
+
+  @override
+  Future<void> init() async {
+    try {
+      if (!await _iap.isAvailable()) return;
+      // 商品情報を事前取得してキャッシュ。以後の購入で再取得のラグが出ない。
+      final resp = await _iap.queryProductDetails(_knownProducts);
+      for (final p in resp.productDetails) {
+        _products[p.id] = p;
+      }
+      // 未処理トランザクションはコンストラクタで購読済みの purchaseStream に
+      // 起動直後に流れてくる。そこで onUnlocked / completePurchase が走る。
+    } catch (e) {
+      debugPrint('StorePurchaseService: init failed: $e');
+    }
+  }
+
   /// 支払いシートの操作を待つ上限。これを超えたら諦めて UI を戻す。
   static const Duration _purchaseTimeout = Duration(minutes: 10);
 
@@ -48,10 +74,13 @@ class StorePurchaseService implements PurchaseService {
 
   @override
   Future<String?> priceOf(String productId) async {
+    final cached = _products[productId];
+    if (cached != null) return cached.price;
     try {
       if (!await isAvailable()) return null;
       final resp = await _iap.queryProductDetails({productId});
       if (resp.error != null || resp.productDetails.isEmpty) return null;
+      _products[productId] = resp.productDetails.first;
       return resp.productDetails.first.price; // ストアのローカライズ価格
     } catch (e) {
       debugPrint('StorePurchaseService: priceOf failed: $e');
@@ -69,30 +98,37 @@ class StorePurchaseService implements PurchaseService {
     if (_pending != null) {
       return const PurchaseResult(PurchaseOutcome.error, '処理中です');
     }
-    if (!await isAvailable()) {
-      return const PurchaseResult(PurchaseOutcome.unavailable, 'ストアに接続できません');
-    }
 
-    final ProductDetailsResponse response;
-    try {
-      response = await _iap.queryProductDetails({productId});
-    } catch (e) {
-      return PurchaseResult(PurchaseOutcome.error, '商品情報を取得できません: $e');
-    }
-    if (response.error != null) {
-      return PurchaseResult(
-          PurchaseOutcome.error, '商品情報を取得できません: ${response.error!.message}');
-    }
-    if (response.productDetails.isEmpty) {
-      return const PurchaseResult(
-          PurchaseOutcome.unavailable, '商品が見つかりません。ストアの設定を確認してください。');
+    // 事前取得キャッシュがあれば再取得しない（開いて即購入のラグ・失敗を防ぐ）。
+    var product = _products[productId];
+    if (product == null) {
+      if (!await isAvailable()) {
+        return const PurchaseResult(
+            PurchaseOutcome.unavailable, 'ストアに接続できません');
+      }
+      final ProductDetailsResponse response;
+      try {
+        response = await _iap.queryProductDetails({productId});
+      } catch (e) {
+        return PurchaseResult(PurchaseOutcome.error, '商品情報を取得できません: $e');
+      }
+      if (response.error != null) {
+        return PurchaseResult(PurchaseOutcome.error,
+            '商品情報を取得できません: ${response.error!.message}');
+      }
+      if (response.productDetails.isEmpty) {
+        return const PurchaseResult(
+            PurchaseOutcome.unavailable, '商品が見つかりません。ストアの設定を確認してください。');
+      }
+      product = response.productDetails.first;
+      _products[productId] = product;
     }
 
     final completer = Completer<PurchaseResult>();
     _pending = completer;
     try {
       final started = await _iap.buyNonConsumable(
-        purchaseParam: PurchaseParam(productDetails: response.productDetails.first),
+        purchaseParam: PurchaseParam(productDetails: product),
       );
       if (!started) {
         _pending = null;
@@ -165,6 +201,8 @@ class StorePurchaseService implements PurchaseService {
 
       switch (p.status) {
         case PurchaseStatus.purchased:
+          // シートが閉じていても確実に権利を付与する（中断復帰にも効く）。
+          _onUnlocked?.call(p.productID);
           _complete(PurchaseResult(PurchaseOutcome.purchased, null, {p.productID}));
         case PurchaseStatus.restored:
           restored.add(p.productID);
@@ -179,6 +217,9 @@ class StorePurchaseService implements PurchaseService {
     }
 
     if (restored.isNotEmpty) {
+      for (final id in restored) {
+        _onUnlocked?.call(id);
+      }
       _complete(PurchaseResult(PurchaseOutcome.restored, null, restored));
     }
   }
