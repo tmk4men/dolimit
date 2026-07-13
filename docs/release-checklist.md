@@ -3,6 +3,8 @@
 `lib/` のアプリ本体はほぼ完成。残るのは **Mac / 実機 / ストア Console 側の設定**が中心。ここに漏れなくまとめる。
 （コード上の実装状況は `README.md` も参照。）
 
+> **iOS を出す具体手順（ターミナル/Xcode/App Store Connect のみ）は [`docs/ios-release.md`](ios-release.md) にまとめてある。** アイコンは `scripts/setup_ios.sh` が自動適用する。
+
 ## 1. プラットフォーム生成・署名
 - [ ] `flutter create . --platforms=android,ios --project-name dolimit` でネイティブプロジェクトを生成（このリポジトリは `android/ios/web` を `.gitignore` 済み）。
 - [ ] アプリアイコンを書き出す: `dart run flutter_launcher_icons`（元画像 `assets/icon/app_icon.png`。設定は `pubspec.yaml` の `flutter_launcher_icons:`）。※ Web デモのアイコンは CI が自動で焼き込むので手動不要。

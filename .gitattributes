@@ -1,0 +1,2 @@
+# シェルスクリプトは常に LF（Mac/CI で shebang が壊れないように）
+*.sh text eol=lf
