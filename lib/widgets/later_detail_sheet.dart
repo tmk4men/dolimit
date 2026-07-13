@@ -96,43 +96,37 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
 
-            // 開始日
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.calendar_today, color: context.c.laterAccent),
-              title: const Text('開始日'),
-              trailing: Text(_date == null ? '未設定' : _fmtDate(_date!),
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
-              onTap: _pickDate,
-            ),
-            if (_date != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                    onPressed: () => setState(() => _date = null),
-                    child: const Text('クリア')),
-              ),
-
-            // 開始時刻
+            // 開始日：トグルをオンにするとカレンダー→時計の順で設定できる。
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               activeColor: context.c.laterAccent,
-              value: _timeSpecified,
-              onChanged: _date == null
-                  ? null
-                  : (v) => setState(() => _timeSpecified = v),
-              title: const Text('開始時刻も指定'),
-              subtitle: Text(
-                  _timeSpecified ? _time.format(context) : '未指定なら自動移動時刻に移動'),
+              value: _date != null,
+              onChanged: (v) async {
+                if (v) {
+                  await _pickSchedule();
+                } else {
+                  _date = null;
+                  _timeSpecified = false;
+                }
+                if (mounted) setState(() {});
+              },
+              title: const Text('開始日を設定'),
             ),
-            if (_timeSpecified && _date != null)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: _pickTime,
-                  icon: const Icon(Icons.schedule, size: 18),
-                  label: Text('時刻を選ぶ（${_time.format(context)}）'),
+            if (_date != null)
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 8),
+                leading: Icon(Icons.event, color: context.c.laterAccent),
+                title: Text(
+                  _timeSpecified
+                      ? '${_fmtDate(_date!)}  ${_time.format(context)}'
+                      : '${_fmtDate(_date!)}（時刻の指定なし）',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
+                trailing: const Icon(Icons.edit_calendar_outlined, size: 20),
+                onTap: () async {
+                  await _pickSchedule();
+                  if (mounted) setState(() {});
+                },
               ),
 
             const Divider(height: 24),
@@ -204,20 +198,36 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
     );
   }
 
-  Future<void> _pickDate() async {
+  /// カレンダーで日付 → 時計で時刻、の順に設定する。
+  /// 時計の「指定しない」を押したら、日付だけ（時刻の指定なし）にする。
+  /// 日付選択をキャンセルしたら何も変更しない。
+  ///
+  /// 呼び出し側で setState すること（このメソッドはフィールドを書き換えるだけ）。
+  Future<void> _pickSchedule() async {
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: _date ?? now,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 5),
+      helpText: '開始日を選ぶ',
     );
-    if (picked != null) setState(() => _date = picked);
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
-    if (picked != null) setState(() => _time = picked);
+    if (pickedDate == null || !mounted) return; // キャンセルなら据え置き
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _time,
+      helpText: '開始時刻を選ぶ',
+      cancelText: '指定しない',
+      confirmText: '設定',
+    );
+    _date = pickedDate;
+    if (pickedTime != null) {
+      _time = pickedTime;
+      _timeSpecified = true;
+    } else {
+      // 「指定しない」= 日付だけ
+      _timeSpecified = false;
+    }
   }
 
   void _save() {

@@ -8,13 +8,15 @@ import '../theme/app_theme.dart';
 import '../util/limits.dart';
 import 'ui_kit.dart';
 
-/// 「Proで枠を増やす」導線。購入・復元を行い、成功したら [AppState.setPro] で解除。
+/// 「ブーストで枠を増やす」導線。¥100 の買い切りで、BOX/TODAY/LATER の上限を
+/// 恒久的に少し広げる。Pro と重ねがけできる。
+///
 /// 実際のストア購入は [PurchaseService] のスタブを差し替えるまで「準備中」を返す。
-class ProSheet extends StatefulWidget {
+class BoostSheet extends StatefulWidget {
   /// テスト用に差し替える。省略時は環境に応じた実装を作る。
   final PurchaseService? service;
 
-  const ProSheet({super.key, this.service});
+  const BoostSheet({super.key, this.service});
 
   static Future<void> present(BuildContext context) {
     return showModalBottomSheet(
@@ -23,15 +25,15 @@ class ProSheet extends StatefulWidget {
       backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => const ProSheet(),
+      builder: (_) => const BoostSheet(),
     );
   }
 
   @override
-  State<ProSheet> createState() => _ProSheetState();
+  State<BoostSheet> createState() => _BoostSheetState();
 }
 
-class _ProSheetState extends State<ProSheet> {
+class _BoostSheetState extends State<BoostSheet> {
   late final PurchaseService _purchase = widget.service ?? PurchaseService.create();
   bool _busy = false;
 
@@ -49,10 +51,10 @@ class _ProSheetState extends State<ProSheet> {
     final messenger = ScaffoldMessenger.of(context);
     final result = await action();
     if (!mounted) return;
-    if (result.unlocked && result.covers(PurchaseService.proProductId)) {
-      app.setPro(true);
+    if (result.unlocked && result.covers(PurchaseService.boostProductId)) {
+      app.setBoost(true);
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Proを解除しました')));
+      messenger.showSnackBar(const SnackBar(content: Text('ブーストを購入しました')));
       return;
     }
     setState(() => _busy = false);
@@ -61,7 +63,7 @@ class _ProSheetState extends State<ProSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isPro = context.select<AppState, bool>((s) => s.isPro);
+    final owned = context.select<AppState, bool>((s) => s.isBoosted);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
       child: Column(
@@ -72,28 +74,30 @@ class _ProSheetState extends State<ProSheet> {
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(Icons.workspace_premium, color: context.c.ink),
+              Icon(Icons.bolt, color: context.c.ink),
               const SizedBox(width: 8),
-              const Text('Proで枠を増やす',
+              const Text('ブーストで枠を増やす',
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
               const Spacer(),
-              if (isPro)
+              if (owned)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                       color: context.c.ink, borderRadius: AppTheme.radiusPill),
-                  child: const Text('解除済み',
+                  child: const Text('購入済み',
                       style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
                 ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text('¥100 の買い切り。ずっと枠が広がります。',
+              style: TextStyle(fontSize: 13, color: context.c.sub)),
           const SizedBox(height: 14),
-          _row('BOX', Limits.box, Limits.box + Limits.proBonusBox),
-          _row('TODAY', Limits.today, Limits.today + Limits.proBonusToday),
-          _row('LATER', Limits.later, Limits.later + Limits.proBonusLater),
-          _row('ジャンル', Limits.genre, Limits.genre + Limits.proBonusGenre),
+          _row('BOX', Limits.box, Limits.box + Limits.boostBonusBox),
+          _row('TODAY', Limits.today, Limits.today + Limits.boostBonusToday),
+          _row('LATER', Limits.later, Limits.later + Limits.boostBonusLater),
           const SizedBox(height: 16),
-          if (!isPro) ...[
+          if (!owned) ...[
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -102,12 +106,12 @@ class _ProSheetState extends State<ProSheet> {
                   backgroundColor: context.c.ink,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                onPressed: _busy ? null : () => _run(_purchase.buyPro),
+                onPressed: _busy ? null : () => _run(_purchase.buyBoost),
                 child: _busy
                     ? const SizedBox(
                         width: 20, height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Proを購入', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    : const Text('¥100で購入', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
             ),
             const SizedBox(height: 6),
@@ -122,18 +126,18 @@ class _ProSheetState extends State<ProSheet> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.read<AppState>().setPro(true);
+                    context.read<AppState>().setBoost(true);
                     Navigator.pop(context);
                   },
-                  child: Text('開発用: Proを解除（debug）',
+                  child: Text('開発用: ブーストを付与（debug）',
                       style: TextStyle(color: context.c.sub)),
                 ),
               ),
           ] else if (kDebugMode)
             Center(
               child: TextButton(
-                onPressed: () => context.read<AppState>().setPro(false),
-                child: Text('開発用: Pro を解除して戻す（debug）',
+                onPressed: () => context.read<AppState>().setBoost(false),
+                child: Text('開発用: ブーストを解除して戻す（debug）',
                     style: TextStyle(color: context.c.sub)),
               ),
             ),
@@ -142,7 +146,7 @@ class _ProSheetState extends State<ProSheet> {
     );
   }
 
-  Widget _row(String label, int base, int pro) {
+  Widget _row(String label, int base, int boosted) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -154,10 +158,10 @@ class _ProSheetState extends State<ProSheet> {
           ),
           Text('$base', style: TextStyle(color: context.c.sub)),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Icon(Icons.arrow_forward_rounded, size: 16, color: context.c.sub),
           ),
-          Text('$pro',
+          Text('$boosted',
               style: TextStyle(fontWeight: FontWeight.w900, color: context.c.ink)),
         ],
       ),

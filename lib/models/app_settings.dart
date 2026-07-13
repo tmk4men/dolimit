@@ -18,8 +18,8 @@ class AppSettings {
   bool onboardingDone;
   bool isPro; // Pro 購入済みなら true（上限が拡張される）
 
-  /// 広告視聴で得た一時的な枠拡張の期限。null または過去なら無効。
-  DateTime? boostUntil;
+  /// ブースト（¥100 の買い切り）を購入済みなら true。恒久的に枠が広がる。
+  bool boostPurchased;
 
   TimeOfDayPref morning;
   TimeOfDayPref midday;
@@ -40,7 +40,7 @@ class AppSettings {
     this.badgeEnabled = true,
     this.onboardingDone = false,
     this.isPro = false,
-    this.boostUntil,
+    this.boostPurchased = false,
     this.morning = const TimeOfDayPref(8, 0),
     this.midday = const TimeOfDayPref(15, 0),
     this.settlement = const TimeOfDayPref(22, 30),
@@ -55,7 +55,7 @@ class AppSettings {
         'badgeEnabled': badgeEnabled,
         'onboardingDone': onboardingDone,
         'isPro': isPro,
-        'boostUntil': boostUntil?.toIso8601String(),
+        'boostPurchased': boostPurchased,
         'morning': morning.toJson(),
         'midday': midday.toJson(),
         'settlement': settlement.toJson(),
@@ -70,9 +70,7 @@ class AppSettings {
         badgeEnabled: (j['badgeEnabled'] ?? true) as bool,
         onboardingDone: (j['onboardingDone'] ?? false) as bool,
         isPro: (j['isPro'] ?? false) as bool,
-        boostUntil: j['boostUntil'] == null
-            ? null
-            : DateTime.parse(j['boostUntil'] as String),
+        boostPurchased: (j['boostPurchased'] ?? false) as bool,
         morning: j['morning'] != null
             ? TimeOfDayPref.fromJson(j['morning'] as Map<String, dynamic>)
             : const TimeOfDayPref(8, 0),

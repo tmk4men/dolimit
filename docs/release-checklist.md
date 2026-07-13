@@ -1,19 +1,22 @@
-# リリース チェックリスト — DoLimit
+# リリース チェックリスト — やっとこ
 
 `lib/` のアプリ本体はほぼ完成。残るのは **Mac / 実機 / ストア Console 側の設定**が中心。ここに漏れなくまとめる。
 （コード上の実装状況は `README.md` も参照。）
 
 ## 1. プラットフォーム生成・署名
 - [ ] `flutter create . --platforms=android,ios --project-name dolimit` でネイティブプロジェクトを生成（このリポジトリは `android/ios/web` を `.gitignore` 済み）。
+- [ ] アプリアイコンを書き出す: `dart run flutter_launcher_icons`（元画像 `assets/icon/app_icon.png`。設定は `pubspec.yaml` の `flutter_launcher_icons:`）。※ Web デモのアイコンは CI が自動で焼き込むので手動不要。
 - [ ] Android: 署名鍵を作成し `android/key.properties` と `build.gradle` に設定。
 - [ ] iOS: Xcode で署名（Apple Developer Program は課金済み）。Bundle ID を決定。
 
 ## 2. Android マニフェスト（`AndroidManifest.xml`）
+- [ ] ランチャーの表示名を「やっとこ」に設定（`<application android:label="やっとこ">`）。※ `--project-name dolimit` は内部識別子なので変えなくてよい。
 - [ ] `POST_NOTIFICATIONS`（Android 13+）を追加。※ inexact スケジュールなので `SCHEDULE_EXACT_ALARM` は不要。
 - [ ] 音声入力: `RECORD_AUDIO` 権限 と `<queries><intent><action android:name="android.speech.RecognitionService"/></intent></queries>`。
 - [ ] （広告を入れる場合のみ）AdMob アプリ ID `com.google.android.gms.ads.APPLICATION_ID`。
 
 ## 3. iOS（`Info.plist`）
+- [ ] 表示名を「やっとこ」に設定（`CFBundleDisplayName`）。
 - [ ] 音声入力: `NSMicrophoneUsageDescription` と `NSSpeechRecognitionUsageDescription`。
 - [ ] 通知・バッジ権限は起動時に要求済み（`main.dart`）。実機で許可ダイアログが出ることを確認。
 - [ ] （広告を入れる場合のみ）`GADApplicationIdentifier`。

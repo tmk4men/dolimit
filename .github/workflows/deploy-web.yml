@@ -38,6 +38,45 @@ jobs:
       - name: Build web
         run: flutter build web --release --pwa-strategy=none --base-href "/${{ github.event.repository.name }}/"
 
+      # web/ は .gitignore で毎回 flutter create が生成する（アプリ名・アイコンが
+      # 既定の "dolimit"/Flutter ロゴに戻る）。ここで表示名「やっとこ」と
+      # assets/icon/app_icon.png を build/web に焼き込む。
+      - name: Apply app name and icon (web)
+        run: |
+          # アイコン各サイズを元画像から生成（ImageMagick は ubuntu-latest に同梱）。
+          mkdir -p build/web/icons
+          convert assets/icon/app_icon.png -resize 192x192 build/web/icons/Icon-192.png
+          convert assets/icon/app_icon.png -resize 512x512 build/web/icons/Icon-512.png
+          convert assets/icon/app_icon.png -resize 192x192 build/web/icons/Icon-maskable-192.png
+          convert assets/icon/app_icon.png -resize 512x512 build/web/icons/Icon-maskable-512.png
+          convert assets/icon/app_icon.png -resize 64x64   build/web/favicon.png
+          # 表示名・PWA 名を書き換え（python3 標準ライブラリのみ。pip 不要）。
+          python3 - <<'PY'
+          import re, json
+
+          NAME = 'やっとこ'
+          DESC = 'やっとこ — 先延ばしにしないToDo。今日やることに絞って決着させるタスク遂行アプリ'
+          BG = '#F4F5F7'
+
+          # index.html の表示名まわり
+          f = 'build/web/index.html'
+          html = open(f, encoding='utf-8').read()
+          html = re.sub(r'<title>.*?</title>', lambda m: f'<title>{NAME}</title>', html, count=1)
+          html = re.sub(r'(<meta name="apple-mobile-web-app-title" content=")[^"]*(">)',
+                        lambda m: m.group(1) + NAME + m.group(2), html)
+          html = re.sub(r'(<meta name="description" content=")[^"]*(">)',
+                        lambda m: m.group(1) + DESC + m.group(2), html)
+          open(f, 'w', encoding='utf-8', newline='').write(html)
+
+          # manifest.json（PWA 名・色）
+          mf = 'build/web/manifest.json'
+          m = json.load(open(mf, encoding='utf-8'))
+          m.update(name=NAME, short_name=NAME, description=DESC,
+                   background_color=BG, theme_color=BG)
+          json.dump(m, open(mf, 'w', encoding='utf-8'), ensure_ascii=False, indent=4)
+          print('applied name and icon to build/web')
+          PY
+
       # キャッシュバスター: エントリスクリプトと main.dart.js にコミットSHAの
       # バージョンクエリを付与し、ブラウザ/CDN の HTTP キャッシュも確実に無効化する。
       - name: Cache-bust web assets

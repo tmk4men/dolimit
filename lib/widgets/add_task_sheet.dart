@@ -5,25 +5,35 @@ import '../state/app_state.dart';
 import '../models/enums.dart';
 import '../theme/app_theme.dart';
 import '../util/limits.dart';
-import 'ad_boost_action.dart';
+import 'boost_sheet.dart';
 import 'pro_sheet.dart';
 import 'ui_kit.dart';
 
-/// ＋ から開くタスク追加シート。入力はタスク名のみ。必ず BOX へ。
+/// ＋ から開くタスク追加シート。入力はタスク名のみ。
+///
+/// 開いていたタブに応じて追加先が決まる：TODAY タブなら TODAY、LATER タブなら
+/// LATER、BOX タブなら BOX へ入る（[target]）。
 ///
 /// 音声入力は端末の音声認識（[SpeechService]）を使う。認識が使えない
 /// 端末では、キーボードの音声入力ボタンを使えるようフォーカスするだけに
 /// フォールバックする。
 class AddTaskSheet extends StatefulWidget {
-  const AddTaskSheet({super.key});
+  /// 追加先の枠。開いていたタブから決まる。
+  final TaskStatus target;
+  const AddTaskSheet({super.key, this.target = TaskStatus.box});
 
-  /// BOX 満杯時はシートを出さずアラート、空きがあれば表示。
-  /// [onSort] は「仕分ける」押下時（BOX タブへ切替）に呼ぶ。
+  /// 満杯時はシートを出さずに知らせる。空きがあれば表示。
+  /// [onSort] は BOX 満杯アラートの「仕分ける」押下時（BOX タブへ切替）に呼ぶ。
   static Future<void> present(BuildContext context,
-      {VoidCallback? onSort}) async {
+      {TaskStatus target = TaskStatus.box, VoidCallback? onSort}) async {
     final app = context.read<AppState>();
-    if (app.isFull(TaskStatus.box)) {
-      await _showBoxFullAlert(context, onSort);
+    if (app.isFull(target)) {
+      if (target == TaskStatus.box) {
+        await _showBoxFullAlert(context, onSort);
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(Limits.fullMessage(target))));
+      }
       return;
     }
     await showModalBottomSheet(
@@ -32,7 +42,7 @@ class AddTaskSheet extends StatefulWidget {
       backgroundColor: context.c.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => const AddTaskSheet(),
+      builder: (_) => AddTaskSheet(target: target),
     );
   }
 
@@ -52,14 +62,14 @@ class AddTaskSheet extends StatefulWidget {
             },
             child: const Text('仕分ける'),
           ),
-          // 広告は実装が接続されるまで導線を出さない。
-          if (adsAvailable(context))
+          // ブースト（¥100 の買い切り）は購入前だけ出す。
+          if (!context.read<AppState>().isBoosted)
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                watchAdForBoost(context);
+                BoostSheet.present(context);
               },
-              child: Text('広告で一時的に+${Limits.adBoostBox}'),
+              child: Text('¥100で枠を増やす（+${Limits.boostBonusBox}）'),
             ),
           TextButton(
             onPressed: () {
@@ -156,31 +166,42 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
       return;
     }
     final app = context.read<AppState>();
-    final ok = app.addToBox(_controller.text,
+    final target = widget.target;
+    final ok = app.add(_controller.text, target,
         source: _usedVoice ? TaskSource.voice : TaskSource.manual);
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(SnackBar(
-        content: Text(ok ? 'BOXに追加しました' : Limits.fullMessage(TaskStatus.box))));
+        content: Text(ok
+            ? '${_label(target)}に追加しました'
+            : Limits.fullMessage(target))));
   }
+
+  /// 追加先の枠名（画面文言用）。
+  static String _label(TaskStatus target) => switch (target) {
+        TaskStatus.today => 'TODAY',
+        TaskStatus.later => 'LATER',
+        _ => 'BOX',
+      };
 
   @override
   Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    // キーボードで領域が縮んでも、入力欄が画面外へ押し出されないよう
-    // スクロール可能にする。padding の bottom にキーボード高さを足す。
+    final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    // キーボードで領域が縮んでも入力欄が隠れないようスクロール可能にする。
+    // padding の bottom にキーボード高さを足して、シート全体をその上へ乗せる。
+    // reverse は使わない：内容が溢れたときは上（タイトル・入力欄）を残し、
+    // フォーカス中の入力欄はフレームワークが自動で見える位置へ送る。
     return Padding(
       padding: EdgeInsets.only(bottom: bottom, left: 20, right: 20, top: 6),
       child: SingleChildScrollView(
-        reverse: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SheetHandle(),
             const SizedBox(height: 6),
-            const Text('BOXに追加',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+            Text('${_label(widget.target)}に追加',
+                style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
             const SizedBox(height: 14),
             Row(
               children: [

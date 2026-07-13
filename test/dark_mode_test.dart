@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dolimit/app.dart';
 import 'package:dolimit/data/store.dart';
-import 'package:dolimit/services/ad_service.dart';
 import 'package:dolimit/services/notification_service.dart';
 import 'package:dolimit/services/speech_service.dart';
 import 'package:dolimit/state/app_navigation.dart';
@@ -25,7 +24,6 @@ Widget wrap(AppState app) => MultiProvider(
         ChangeNotifierProvider<AppState>.value(value: app),
         ChangeNotifierProvider(create: (_) => AppNavigation()),
         Provider<SpeechService>(create: (_) => SpeechService.create()),
-        Provider<RewardedAdService>(create: (_) => RewardedAdService.create()),
       ],
       child: const DoLimitApp(),
     );

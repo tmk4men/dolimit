@@ -1,5 +1,5 @@
 name: dolimit
-description: "DoLimit / 今日やる枠 — タスクを溜めずに今日に決着させるタスク遂行アプリ"
+description: "やっとこ — 先延ばしにしないToDo。今日やることに絞って決着させるタスク遂行アプリ"
 publish_to: "none"
 # 通知ディープリンク / 音声認識 / Pro 課金 / 一時枠拡張 を追加。
 # Android は versionCode（+ の右）が上がらないとアップロードを弾かれる。
@@ -30,6 +30,24 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1   # アプリアイコン生成（`dart run flutter_launcher_icons`）
 
 flutter:
   uses-material-design: true
+
+# アプリアイコン。ネイティブ生成後に `dart run flutter_launcher_icons` を実行すると
+# assets/icon/app_icon.png から各サイズを書き出す。Web デモのアイコンは
+# .github/workflows/deploy-web.yml がビルド後に焼き込む（web/ は CI 生成のため）。
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#F4F5F7"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    background_color: "#F4F5F7"
+    theme_color: "#F4F5F7"

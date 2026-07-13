@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import '../models/app_settings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
-import '../widgets/ad_boost_action.dart';
+import '../util/limits.dart';
+import '../widgets/boost_sheet.dart';
 import '../widgets/pro_sheet.dart';
 import 'genre_management_screen.dart';
 
@@ -64,8 +65,8 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
 
-          // Pro / 広告（広告は実装が接続されるまで出さない）
-          _section(context, adsAvailable(context) ? 'Pro / 広告' : 'Pro'),
+          // 課金（枠拡張）
+          _section(context, '枠を増やす'),
           ListTile(
             leading: const Icon(Icons.workspace_premium),
             title: const Text('Proで枠を増やす'),
@@ -73,13 +74,15 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => ProSheet.present(context),
           ),
-          if (adsAvailable(context))
-            ListTile(
-              leading: const Icon(Icons.ondemand_video),
-              title: const Text('広告で一時的に枠を増やす'),
-              subtitle: Text(adBoostSubtitle(app)),
-              onTap: () => watchAdForBoost(context),
-            ),
+          ListTile(
+            leading: const Icon(Icons.bolt),
+            title: const Text('ブーストで枠を増やす'),
+            subtitle: Text(s.boostPurchased
+                ? '購入済み'
+                : '¥100の買い切り — BOX+${Limits.boostBonusBox} / TODAY+${Limits.boostBonusToday} / LATER+${Limits.boostBonusLater}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => BoostSheet.present(context),
+          ),
         ],
       ),
     );

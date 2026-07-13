@@ -13,18 +13,15 @@ class Limits {
   static const int proBonusLater = 15;
   static const int proBonusGenre = 5;
 
-  // 広告視聴で一時的に加算される拡張ぶん。Pro と重ねがけできる。
-  static const int adBoostBox = 5;
-  static const int adBoostToday = 2;
-  static const int adBoostLater = 5;
+  // ブースト（¥100 の買い切り）で恒久的に加算される拡張ぶん。Pro と重ねがけできる。
+  static const int boostBonusBox = 5;
+  static const int boostBonusToday = 2;
+  static const int boostBonusLater = 5;
 
-  /// 広告ブーストの有効時間。切れたら黙って基本上限に戻る。
-  static const Duration adBoostDuration = Duration(hours: 24);
-
-  static int adBoostFor(TaskStatus status) => switch (status) {
-        TaskStatus.box => adBoostBox,
-        TaskStatus.today => adBoostToday,
-        TaskStatus.later => adBoostLater,
+  static int boostBonusFor(TaskStatus status) => switch (status) {
+        TaskStatus.box => boostBonusBox,
+        TaskStatus.today => boostBonusToday,
+        TaskStatus.later => boostBonusLater,
         _ => 0,
       };
 

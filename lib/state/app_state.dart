@@ -122,26 +122,13 @@ class AppState extends ChangeNotifier {
 
   bool get isPro => settings.isPro;
 
-  /// 広告ブーストが有効か。
-  bool get isBoosted {
-    final until = settings.boostUntil;
-    return until != null && until.isAfter(DateTime.now());
-  }
+  /// ブースト（¥100 の買い切り）を購入済みか。恒久的に枠が広がる。
+  bool get isBoosted => settings.boostPurchased;
 
-  /// ブーストの残り時間。無効なら null。
-  Duration? get boostRemaining {
-    final until = settings.boostUntil;
-    if (until == null) return null;
-    final left = until.difference(DateTime.now());
-    return left.isNegative ? null : left;
-  }
-
-  /// 広告視聴の報酬として一時的に枠を広げる。
-  /// すでに有効なら、そのときの期限からさらに延長する。
-  void grantAdBoost() {
-    final now = DateTime.now();
-    final from = isBoosted ? settings.boostUntil! : now;
-    settings.boostUntil = from.add(Limits.adBoostDuration);
+  /// ブースト購入状態を切り替えて永続化する（購入成功・復元・開発用から呼ぶ）。
+  void setBoost(bool value) {
+    if (settings.boostPurchased == value) return;
+    settings.boostPurchased = value;
     _persistSettings();
     notifyListeners();
   }
@@ -152,7 +139,7 @@ class AppState extends ChangeNotifier {
     if (base == null) return null;
     return base +
         (isPro ? Limits.proBonusFor(status) : 0) +
-        (isBoosted ? Limits.adBoostFor(status) : 0);
+        (isBoosted ? Limits.boostBonusFor(status) : 0);
   }
 
   /// Pro を加味したジャンル上限。
@@ -173,15 +160,27 @@ class AppState extends ChangeNotifier {
 
   // ===== 追加 =====
 
-  /// BOX へ追加。空文字・満杯なら false。
-  bool addToBox(String title, {TaskSource source = TaskSource.manual}) {
+  /// 指定した枠（BOX / TODAY / LATER）へ直接追加。空文字・満杯なら false。
+  bool add(String title, TaskStatus target,
+      {TaskSource source = TaskSource.manual}) {
     final t = title.trim();
     if (t.isEmpty) return false;
-    if (isFull(TaskStatus.box)) return false;
-    _tasks.add(TaskItem(id: _uuid.v4(), title: t, status: TaskStatus.box, source: source));
+    if (isFull(target)) return false;
+    final task =
+        TaskItem(id: _uuid.v4(), title: t, status: TaskStatus.box, source: source);
+    _tasks.add(task);
+    // TODAY / LATER へ直接入れるときは、その枠に応じた初期化（並び順や
+    // 各種フラグ）を移動時と同じ手順で行う。
+    if (target != TaskStatus.box) {
+      _apply(task, target);
+    }
     _persistAndRefresh();
     return true;
   }
+
+  /// BOX へ追加。空文字・満杯なら false。
+  bool addToBox(String title, {TaskSource source = TaskSource.manual}) =>
+      add(title, TaskStatus.box, source: source);
 
   // ===== 移動 =====
 
@@ -364,19 +363,8 @@ class AppState extends ChangeNotifier {
     changed = _purgeArchived(now) || changed;
     if (changed) _persistTasks();
 
-    // ブーストの失効は tasks ではなく settings 側の変更。
-    final boostExpired = _expireBoost(now);
     _refreshBadge();
-    if (changed || boostExpired) notifyListeners();
-  }
-
-  /// 期限切れの広告ブーストを片付ける。上限表示が戻る。
-  bool _expireBoost(DateTime now) {
-    final until = settings.boostUntil;
-    if (until == null || until.isAfter(now)) return false;
-    settings.boostUntil = null;
-    _persistSettings();
-    return true;
+    if (changed) notifyListeners();
   }
 
   bool _rollOverDay(DateTime now) {

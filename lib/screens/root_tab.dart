@@ -26,6 +26,14 @@ class RootTab extends StatelessWidget {
     final laterCount = app.count(TaskStatus.later);
     void goToTab(int i) => nav.goTo(i);
 
+    // 開いているタブに応じて追加先を決める。TODAY タブなら TODAY、
+    // LATER タブなら LATER、それ以外（BOX）は BOX へ。
+    final addTarget = switch (nav.tab) {
+      AppNavigation.todayTab => TaskStatus.today,
+      AppNavigation.laterTab => TaskStatus.later,
+      _ => TaskStatus.box,
+    };
+
     final screens = [
       const BoxScreen(),
       const TodayScreen(),
@@ -38,7 +46,7 @@ class RootTab extends StatelessWidget {
           child: IndexedStack(index: nav.tab, children: screens)),
       floatingActionButton: _Fab(
         onTap: () => AddTaskSheet.present(context,
-            onSort: () => goToTab(AppNavigation.boxTab)),
+            target: addTarget, onSort: () => goToTab(AppNavigation.boxTab)),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: nav.tab,

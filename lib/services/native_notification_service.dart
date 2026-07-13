@@ -45,7 +45,7 @@ class NativeNotificationService implements NotificationService {
   static const AndroidNotificationDetails _androidDetails =
       AndroidNotificationDetails(
     'dolimit_main',
-    'DoLimit リマインド',
+    'やっとこ リマインド',
     channelDescription: '今日やる枠のリマインドと自動処理のお知らせ',
     importance: Importance.high,
     priority: Priority.high,

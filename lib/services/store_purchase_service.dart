@@ -47,7 +47,12 @@ class StorePurchaseService implements PurchaseService {
   }
 
   @override
-  Future<PurchaseResult> buyPro() async {
+  Future<PurchaseResult> buyPro() => _buy(PurchaseService.proProductId);
+
+  @override
+  Future<PurchaseResult> buyBoost() => _buy(PurchaseService.boostProductId);
+
+  Future<PurchaseResult> _buy(String productId) async {
     if (_pending != null) {
       return const PurchaseResult(PurchaseOutcome.error, '処理中です');
     }
@@ -57,7 +62,7 @@ class StorePurchaseService implements PurchaseService {
 
     final ProductDetailsResponse response;
     try {
-      response = await _iap.queryProductDetails({PurchaseService.proProductId});
+      response = await _iap.queryProductDetails({productId});
     } catch (e) {
       return PurchaseResult(PurchaseOutcome.error, '商品情報を取得できません: $e');
     }
@@ -121,9 +126,17 @@ class StorePurchaseService implements PurchaseService {
     });
   }
 
+  static const Set<String> _knownProducts = {
+    PurchaseService.proProductId,
+    PurchaseService.boostProductId,
+  };
+
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
+    // 復元は 1 回の更新で複数商品がまとめて届きうるので、集めて 1 度に返す。
+    final restored = <String>{};
+
     for (final p in purchases) {
-      if (p.productID != PurchaseService.proProductId) continue;
+      if (!_knownProducts.contains(p.productID)) continue;
 
       // pending は「支払いシート表示中」。まだ何も決まっていない。
       if (p.status == PurchaseStatus.pending) continue;
@@ -137,14 +150,23 @@ class StorePurchaseService implements PurchaseService {
         }
       }
 
-      _complete(switch (p.status) {
-        PurchaseStatus.purchased => const PurchaseResult(PurchaseOutcome.purchased),
-        PurchaseStatus.restored => const PurchaseResult(PurchaseOutcome.restored),
-        PurchaseStatus.canceled => const PurchaseResult(PurchaseOutcome.cancelled, '購入を中止しました'),
-        PurchaseStatus.error => PurchaseResult(
-            PurchaseOutcome.error, p.error?.message ?? '購入に失敗しました'),
-        PurchaseStatus.pending => const PurchaseResult(PurchaseOutcome.error, '不正な状態です'),
-      });
+      switch (p.status) {
+        case PurchaseStatus.purchased:
+          _complete(PurchaseResult(PurchaseOutcome.purchased, null, {p.productID}));
+        case PurchaseStatus.restored:
+          restored.add(p.productID);
+        case PurchaseStatus.canceled:
+          _complete(const PurchaseResult(PurchaseOutcome.cancelled, '購入を中止しました'));
+        case PurchaseStatus.error:
+          _complete(PurchaseResult(
+              PurchaseOutcome.error, p.error?.message ?? '購入に失敗しました'));
+        case PurchaseStatus.pending:
+          break;
+      }
+    }
+
+    if (restored.isNotEmpty) {
+      _complete(PurchaseResult(PurchaseOutcome.restored, null, restored));
     }
   }
 

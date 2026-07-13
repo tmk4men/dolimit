@@ -120,8 +120,6 @@ class _LaterScreenState extends State<LaterScreen> {
         TaskMenuAction('開始日 / 通知を設定', Icons.event_outlined, () => LaterDetailSheet.present(context, task)),
         TaskMenuAction('ジャンル変更', Icons.label_outline, () => GenrePickerSheet.present(context, task)),
         TaskMenuAction('編集', Icons.edit_outlined, () => EditTaskSheet.present(context, task)),
-        TaskMenuAction('完了', Icons.check_circle_outline,
-            () { app.complete(task); showUndoSnack(context, '完了にしました'); }),
         TaskMenuAction('削除', Icons.delete_outline,
             () { app.deleteTask(task); showUndoSnack(context, '削除しました'); }, destructive: true),
       ],

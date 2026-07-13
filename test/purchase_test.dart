@@ -33,6 +33,12 @@ class FakePurchaseService implements PurchaseService {
   }
 
   @override
+  Future<PurchaseResult> buyBoost() async {
+    buyCount++;
+    return buyResult;
+  }
+
+  @override
   Future<PurchaseResult> restore() async {
     restoreCount++;
     return restoreResult;
