@@ -69,18 +69,28 @@ Xcode で：
 
 ## 4. ビルドとアップロード
 
-### 方法A：ターミナルだけ（おすすめ）
+### 方法A：ターミナルだけ（おすすめ・Connect API キー）
 ```bash
 flutter build ipa --export-method app-store
 ```
-`build/ios/ipa/*.ipa` ができる。これをアップロード：
+`build/ios/ipa/*.ipa` ができる。これを **App Store Connect API キー**でアップロード：
+
 ```bash
-# 事前に appleid.apple.com → サインインとセキュリティ → App用パスワード を作成
+# 事前準備（Mac で1回だけ）：.p8 を共通置き場に置く。他アプリと共用でよい。
+#   mkdir -p ~/.appstoreconnect/private_keys
+#   cp /他アプリ/AuthKey_XXXXXXXXXX.p8 ~/.appstoreconnect/private_keys/
 xcrun altool --upload-app -t ios \
   -f build/ios/ipa/*.ipa \
-  -u "あなたのAppleID(メール)" \
-  -p "xxxx-xxxx-xxxx-xxxx"   # 上で作ったApp用パスワード
+  --apiKey  XXXXXXXXXX \                          # Key ID = ファイル名 AuthKey_XXXXXXXXXX.p8 の後半
+  --apiIssuer xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx # Issuer ID
 ```
+
+- **Key ID / Issuer ID はアカウント共通**。他アプリで使ったのと同じ値をそのまま使う。
+- **Issuer ID の場所**：App Store Connect → ユーザーとアクセス → Integrations（統合）→ App Store Connect API。
+- `.p8` は上記の `~/.appstoreconnect/private_keys/` に置いておけば `--apiKey` が自動で見つける（キー本体のパス指定は不要）。
+- ⚠️ `.p8`・Key ID・Issuer ID は**秘密情報**。このリポジトリにコミットしない。
+
+> 旧方式（Apple ID ＋ App 用パスワード）でも可：`-u "AppleID(メール)" -p "xxxx-xxxx-xxxx-xxxx"`。API キーが使えるならそちらが手軽。
 
 ### 方法B：Xcode の GUI（確実）
 Xcode → メニュー **Product → Archive** → 完了後 **Distribute App → App Store Connect → Upload**。署名は自動。
