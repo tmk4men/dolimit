@@ -3,6 +3,7 @@
   "appId": "0000000000",
   "locale": "ja",
   "category": "HEALTH_AND_FITNESS",
+  "copyright": "2026 TomokiKariya",
   "urls": {
     "baseUrl": "https://<your-github-user>.github.io/<your-app-repo>",
     "contactEmail": "you@example.com"

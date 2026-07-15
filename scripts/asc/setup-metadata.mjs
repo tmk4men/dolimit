@@ -30,6 +30,8 @@ const { PRIVACY_URL, SUPPORT_URL } = APP.urls;
 const SUPPORT = COPY.supportUrl || SUPPORT_URL;
 const MARKETING = COPY.marketingUrl || SUPPORT_URL;
 const CONTACT_EMAIL = APP.urls.CONTACT_EMAIL;
+// 著作権表示（App Information の Copyright）。config で上書き可、未指定なら既定。
+const COPYRIGHT = APP.copyright || "2026 TomokiKariya";
 
 async function patch(label, endpoint, type, id, attributes) {
   if (!EXECUTE) {
@@ -73,6 +75,11 @@ async function main() {
       }
     }
   }
+
+  // 1.5) 著作権表示（バージョン属性・毎回セット）
+  console.log("■ 著作権表示（Copyright）");
+  if (!ver) console.log("  ⚠ バージョンが見つかりません");
+  else await patch(`copyright "${COPYRIGHT}"`, `/v1/appStoreVersions/${ver.id}`, "appStoreVersions", ver.id, { copyright: COPYRIGHT });
 
   // 2) アプリ情報のサブタイトル
   console.log("■ サブタイトル");
