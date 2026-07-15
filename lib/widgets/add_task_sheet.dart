@@ -213,7 +213,9 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
                     autofocus: true,
                     textInputAction: TextInputAction.done,
                     style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w600),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        fontFamilyFallback: kJaFontFallback),
                     onSubmitted: (_) => _add(),
                     decoration: InputDecoration(
                       hintText: 'やることを入力',

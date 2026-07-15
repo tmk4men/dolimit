@@ -84,15 +84,21 @@ class _TodayScreenState extends State<TodayScreen> {
                   ? ReorderableListView.builder(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 130),
                       itemCount: tasks.length,
+                      // カード全体を長押しするとそのまま掴んで上下に動かせる。
+                      // 既定のドラッグハンドルは使わず、明示的に長押しで開始する。
+                      buildDefaultDragHandles: false,
                       proxyDecorator: (child, index, anim) => Material(
                         color: Colors.transparent,
                         child: child,
                       ),
                       onReorder: (o, n) => app.reorderToday(o, n),
-                      itemBuilder: (_, i) => Padding(
+                      itemBuilder: (_, i) => ReorderableDelayedDragStartListener(
                         key: ValueKey(tasks[i].id),
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _card(context, app, tasks[i]),
+                        index: i,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _card(context, app, tasks[i]),
+                        ),
                       ),
                     )
                   : ListView.separated(

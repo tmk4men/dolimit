@@ -37,7 +37,6 @@ class SettingsScreen extends StatelessWidget {
           _timeTile(context, app, '朝の確認', s.morning, (t) => s.morning = t),
           _timeTile(context, app, '日中リマインド', s.midday, (t) => s.midday = t),
           _timeTile(context, app, '夜のかたづけ', s.settlement, (t) => s.settlement = t),
-          _timeTile(context, app, 'LATER自動移動', s.laterAutoMove, (t) => s.laterAutoMove = t),
 
           // ジャンル
           _section(context, 'ジャンル'),

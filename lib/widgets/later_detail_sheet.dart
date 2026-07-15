@@ -6,7 +6,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import 'ui_kit.dart';
 
-/// LATER 詳細設定：開始日 / 開始時刻 / 事前通知 / 自動移動 ON/OFF
+/// LATER 詳細設定：開始日 / 開始時刻 / 事前通知（開始日にTODAYへ自動移動）
 class LaterDetailSheet extends StatefulWidget {
   final TaskItem task;
   const LaterDetailSheet({super.key, required this.task});
@@ -54,7 +54,6 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
   late TimeOfDay _time = TimeOfDay(
       hour: widget.task.startAt?.hour ?? 9,
       minute: widget.task.startAt?.minute ?? 0);
-  late bool _autoMove = widget.task.autoMoveToToday;
 
   late int _presetIndex = _initialPreset();
   late int _customValue = widget.task.reminderOffsetValue ?? 10;
@@ -174,16 +173,23 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
 
             const Divider(height: 24),
 
-            // 自動移動
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              activeColor: context.c.laterAccent,
-              value: _autoMove,
-              onChanged: (v) => setState(() => _autoMove = v),
-              title: const Text('開始日にTODAYへ自動移動'),
+            // 開始日が来たら必ず TODAY へ自動移動する（オプトアウトなし）。
+            Row(
+              children: [
+                Icon(Icons.wb_sunny_outlined,
+                    size: 18, color: context.c.laterAccent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('開始日になると自動でTODAYへ移動します',
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: context.c.ink2)),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
@@ -258,7 +264,7 @@ class _LaterDetailSheetState extends State<LaterDetailSheet> {
           widget.task,
           startAt: startAt,
           startDateOnly: startDateOnly,
-          autoMove: _autoMove,
+          autoMove: true,
           reminderEnabled: reminderEnabled && startAt != null,
           reminderOffsetValue: offsetValue,
           reminderOffsetUnit: offsetUnit,

@@ -257,3 +257,12 @@ class AppTheme {
 
 /// 数字表示用（等幅）
 const List<FontFeature> kTabular = [FontFeature.tabularFigures()];
+
+/// 日本語グリフのフォールバック先を前もって宣言するための並び。
+/// iOS 標準の日本語フォント（ヒラギノ）を明示しておくと、変換確定の瞬間に
+/// グリフ解決が1フレーム遅れて「〼（グリフ欠け）」が一瞬見える現象を抑えられる。
+/// 実際に描かれるのは従来どおりヒラギノなので、見た目は変わらない。
+const List<String> kJaFontFallback = <String>[
+  'Hiragino Sans',
+  'Hiragino Kaku Gothic ProN',
+];

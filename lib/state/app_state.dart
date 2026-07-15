@@ -316,16 +316,16 @@ class AppState extends ChangeNotifier {
   DateTime? effectiveStartDate(TaskItem task) {
     if (task.startAt == null) return null;
     if (task.startDateOnly) {
-      final t = settings.laterAutoMove;
+      // 時刻の指定がないときは「日付が変わるタイミング（0:00）」を基準にする。
+      // 自動移動はこの瞬間に走り、事前通知はここから逆算する。
       final d = task.startAt!;
-      return DateTime(d.year, d.month, d.day, t.hour, t.minute);
+      return DateTime(d.year, d.month, d.day);
     }
     return task.startAt;
   }
 
-  /// LATER の事前通知を貼り直す。開始日のみ指定のタスクは
-  /// [AppSettings.laterAutoMove] を基準時刻に使うため、設定が変わったら
-  /// 予約もやり直す必要がある。
+  /// LATER の事前通知を貼り直す。通知の ON/OFF や取り込みで予約内容が
+  /// 変わったときにまとめて貼り直すために使う。
   void _rescheduleLaterReminders() {
     for (final t in _tasks.where((t) => t.status == TaskStatus.later)) {
       _scheduleReminder(t);
@@ -393,7 +393,8 @@ class AppState extends ChangeNotifier {
 
   bool _autoMoveDueLater(DateTime now) {
     var changed = false;
-    for (final t in _tasks.where((t) => t.status == TaskStatus.later && t.autoMoveToToday).toList()) {
+    // 開始日が来た LATER は必ず TODAY へ移す（オプトアウトなし）。
+    for (final t in _tasks.where((t) => t.status == TaskStatus.later).toList()) {
       final due = effectiveStartDate(t);
       if (due == null || due.isAfter(now)) continue;
       if (count(TaskStatus.today) >= capacityFor(TaskStatus.today)!) {
@@ -535,16 +536,13 @@ class AppState extends ChangeNotifier {
 
   void updateSettings(void Function(AppSettings s) update) {
     final wasEnabled = settings.notificationsEnabled;
-    final wasAutoMove = settings.laterAutoMove;
 
     update(settings);
     _persistSettings();
     notifier.rescheduleDailyReminders(settings);
 
-    // 通知の ON/OFF と自動移動時刻は、どちらも LATER の事前通知の予約内容を変える。
-    final autoMoveChanged = settings.laterAutoMove.hour != wasAutoMove.hour ||
-        settings.laterAutoMove.minute != wasAutoMove.minute;
-    if (settings.notificationsEnabled != wasEnabled || autoMoveChanged) {
+    // 通知の ON/OFF は LATER 事前通知の予約の有無を変えるので貼り直す。
+    if (settings.notificationsEnabled != wasEnabled) {
       _rescheduleLaterReminders();
       _persistTasks();
     }

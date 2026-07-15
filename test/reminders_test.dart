@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:dolimit/data/store.dart';
-import 'package:dolimit/models/app_settings.dart';
 import 'package:dolimit/models/enums.dart';
 import 'package:dolimit/models/task.dart';
 import 'package:dolimit/services/notification_service.dart';
@@ -117,28 +116,15 @@ void main() {
     expect(t.reminderAt, isNull);
   });
 
-  test('自動移動時刻を変えると開始日のみのタスクの予約時刻も変わる', () async {
+  test('開始日のみのタスクは日付が変わる 0:00 から逆算して予約される', () async {
     final (app, notifier) = await newState();
     final t = addLaterWithReminder(app, '朝の運動', dateOnly: true);
-    final before = t.reminderAt;
-    expect(before, isNotNull);
 
-    // 既定は 7:00。9:00 に変えると、10分前の予約は 8:50 になる。
-    app.updateSettings((s) => s.laterAutoMove = const TimeOfDayPref(9, 0));
-
-    expect(t.reminderAt, isNot(before));
-    expect(t.reminderAt!.hour, 8);
-    expect(t.reminderAt!.minute, 50);
+    // 開始日は明日。基準は 0:00（日付が変わる瞬間）で、10分前の予約は前日 23:50。
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final midnight = DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
+    final expected = midnight.subtract(const Duration(minutes: 10));
+    expect(t.reminderAt, expected);
     expect(notifier.scheduled, contains(t.id));
-  });
-
-  test('時刻指定ありのタスクは自動移動時刻の変更に影響されない', () async {
-    final (app, _) = await newState();
-    final t = addLaterWithReminder(app, '会議', dateOnly: false);
-    final before = t.reminderAt;
-
-    app.updateSettings((s) => s.laterAutoMove = const TimeOfDayPref(9, 0));
-
-    expect(t.reminderAt, before, reason: '15:00 開始の 10 分前のまま');
   });
 }

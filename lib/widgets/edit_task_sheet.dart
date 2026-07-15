@@ -56,6 +56,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
             const SizedBox(height: 14),
             TextField(
               controller: _title,
+              style: const TextStyle(fontFamilyFallback: kJaFontFallback),
               decoration: const InputDecoration(labelText: 'タスク名'),
             ),
             const SizedBox(height: 12),
@@ -63,6 +64,7 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
               controller: _memo,
               maxLines: 3,
               minLines: 1,
+              style: const TextStyle(fontFamilyFallback: kJaFontFallback),
               decoration: const InputDecoration(labelText: 'メモ（任意）'),
             ),
             const SizedBox(height: 16),
