@@ -8,6 +8,24 @@
     "supportUrl": "https://accidental-twine-974.notion.site/Privacy-Policy-ToDo-39cea830abd380dea638ea69253209ee",
     "contactEmail": "tomokiskriiiabc@gmail.com"
   },
+  "iaps": [
+    {
+      "productId": "dolimit_pro",
+      "type": "NON_CONSUMABLE",
+      "referenceName": "Pro",
+      "name": "Pro",
+      "description": "BOX / TODAY / LATER / ジャンルの上限をまとめて拡張します。",
+      "priceYen": 500
+    },
+    {
+      "productId": "dolimit_boost",
+      "type": "NON_CONSUMABLE",
+      "referenceName": "ブースト",
+      "name": "ブースト",
+      "description": "BOX+5 / TODAY+2 / LATER+5 を恒久的に追加します。",
+      "priceYen": 100
+    }
+  ],
   "copy": {
     "subtitle": "溜めない。今日に決着をつけるタスク遂行アプリ",
     "promotionalText": "やることを溜めすぎていませんか？ やっとこ は「今日やる枠」を決めて、先延ばしを夜に精算する、溜めさせないための遂行アプリです。",

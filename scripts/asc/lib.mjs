@@ -148,6 +148,7 @@ export function loadAppConfig(argv, here) {
     category: expanded.category || null,
     urls: { ...expanded.urls, ...vars },
     plan: expanded.plan || null,
+    iaps: expanded.iaps || null,
     copy: expanded.copy || null,
   };
 }
