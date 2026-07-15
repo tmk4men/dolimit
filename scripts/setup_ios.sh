@@ -16,7 +16,7 @@ set -euo pipefail
 # ===== 設定（必要なら書き換え）=====
 ORG="com.tmk4men"          # バンドルID接頭辞 → com.tmk4men.dolimit
 PROJECT_NAME="dolimit"     # 内部識別子（表示名ではない。据え置き推奨）
-DISPLAY_NAME="やっとこ-先延ばし防止todoリスト"    # ホーム画面に出るアプリ名
+DISPLAY_NAME="やっとこ"    # ホーム画面に出るアプリ名（短く。長い正式名はApp Store Connectの「App名」で設定）
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
