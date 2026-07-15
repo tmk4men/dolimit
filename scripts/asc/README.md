@@ -43,6 +43,37 @@ cd scripts/asc && npm link      # 以後 "asc" コマンドが全ディレクト
 
 未導入でも `node scripts/asc/asc.mjs <command>` で同じことができる。
 
+## 3.5 「貼るだけ」ブートストラップ（Macで1回だけ）
+
+これを一度やっておくと、以後どのアプリでも **env 変数もパスも書かず** 短いコマンドで実行できる。
+
+```bash
+# (a) ツールを中立な場所に置いてグローバル導入（dolimit を消してもリンクが切れない）
+mkdir -p ~/asc-tools && cp -R ~/dolimit/scripts/asc/* ~/asc-tools/
+cd ~/asc-tools && npm link          # asc / asc-setup / asc-meta / asc-iap が全フォルダで使える
+
+# (b) 認証を1つ用意（.p8 はアカウント共通。以後 env 変数不要）
+mkdir -p ~/.asc
+KP=$(ls ~/.appstoreconnect/private_keys/AuthKey_*.p8)
+cat > ~/.asc/config.json <<JSON
+{ "keyId": "$(basename "$KP" .p8 | sed 's/AuthKey_//')",
+  "issuerId": "<あなたのIssuerID>",
+  "keyPath": "$KP" }
+JSON
+```
+
+これ以降、**新しいアプリの投入は「アプリ設定を書く → asc-setup」だけ**：
+
+```bash
+# 例）どのフォルダからでも。config はどこに置いてもよい（~/.asc/<app>.json 推奨）
+APPID=$(asc apps | awk -F'\t' '$3=="<bundleId>"{print $1}')   # bundleId から appId 自動取得
+asc-setup ~/.asc/<app>.json "$APPID"          # ドライラン（送信なし）
+asc-setup ~/.asc/<app>.json "$APPID" --yes    # 反映（掲載文＋課金）
+```
+
+> 新規アプリの `~/.asc/<app>.json` は `asc.config.example.json` が雛形。
+> `copy`（説明/キーワード/宣伝文/サブタイトル/審査メモ）と `iaps`（課金）と `urls` を埋めるだけ。
+
 ## 4. 実行
 
 ```bash
