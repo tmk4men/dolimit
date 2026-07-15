@@ -1,0 +1,13 @@
+{
+  "name": "asc-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "App Store Connect 自動化CLI（複数アプリで使い回し。npm link で全フォルダから呼べる）",
+  "type": "module",
+  "bin": {
+    "asc": "./asc.mjs",
+    "asc-setup": "./setup-all.mjs",
+    "asc-meta": "./setup-metadata.mjs",
+    "asc-iap": "./setup-iap.mjs"
+  }
+}

@@ -32,9 +32,22 @@ function log(s) {
   console.log(s);
 }
 
-// JPN の価格ポイントを全ページ探して、指定円に一致する pricePoint id を返す。
-async function findPricePointJPN(iapId, yen) {
-  let endpoint = `/v2/inAppPurchases/${iapId}/pricePoints?filter[territory]=JPN&include=territory&limit=200`;
+// Apple が返す relationship の related リンクをそのまま使う（v1/v2 の差異を吸収）。
+function relatedPath(iap, name, fallback) {
+  const link = iap && iap.relationships && iap.relationships[name] && iap.relationships[name].links && iap.relationships[name].links.related;
+  return link ? link.replace(BASE, "") : fallback;
+}
+
+// productId 一致の既存IAPを取得（関係リンク付き）。
+async function findIap(productId) {
+  const list = await api("GET", `/v1/apps/${appId}/inAppPurchasesV2?limit=200`);
+  return (list.data || []).find((p) => p.attributes.productId === productId) || null;
+}
+
+// 価格ポイント(JPN)を全ページ探して、指定円に一致する pricePoint id を返す。
+async function findPricePointJPN(startPath, yen) {
+  const sep = startPath.includes("?") ? "&" : "?";
+  let endpoint = `${startPath}${sep}filter[territory]=JPN&limit=200`;
   while (endpoint) {
     const r = await api("GET", endpoint);
     for (const pp of r.data || []) {
@@ -50,15 +63,17 @@ async function ensureIap(spec) {
   log(`\n■ ${spec.productId}（${spec.name} / ¥${spec.priceYen}）`);
 
   // 1) 既存を探す（productId 一致）。なければ作成。
-  const list = await api("GET", `/v1/apps/${appId}/inAppPurchasesV2?limit=200`);
-  let iap = (list.data || []).find((p) => p.attributes.productId === spec.productId);
+  let iap = await findIap(spec.productId);
 
   if (iap) {
     log(`  ・既存を再利用: ${iap.id}（state=${iap.attributes.state}）`);
   } else if (!EXECUTE) {
     log(`  ＋作成予定: ${spec.type} name="${spec.referenceName || spec.name}"`);
+    log(`  ＋ローカライズ予定(${LOCALE}): 表示名="${spec.name}" 説明="${spec.description}"`);
+    log(`  ＋価格予定: ¥${spec.priceYen}（JPNの価格ポイントから設定）`);
+    return;
   } else {
-    const res = await api("POST", "/v2/inAppPurchases", {
+    await api("POST", "/v2/inAppPurchases", {
       data: {
         type: "inAppPurchases",
         attributes: {
@@ -69,19 +84,14 @@ async function ensureIap(spec) {
         relationships: { app: { data: { type: "apps", id: appId } } },
       },
     });
-    iap = res.data;
+    iap = await findIap(spec.productId); // 関係リンク付きで取り直す
     log(`  ✅ 作成: ${iap.id}`);
   }
 
-  // 以降は iap が必要。ドライランで未作成ならここで概要だけ出して戻る。
-  if (!iap) {
-    log(`  ＋ローカライズ予定(${LOCALE}): 表示名="${spec.name}" 説明="${spec.description}"`);
-    log(`  ＋価格予定: ¥${spec.priceYen}（JPNの価格ポイントから設定）`);
-    return;
-  }
-
   // 2) 日本語ローカライズ（表示名・説明）
-  const locs = await api("GET", `/v1/inAppPurchases/${iap.id}/inAppPurchaseLocalizations?limit=50`);
+  const locsPath = relatedPath(iap, "inAppPurchaseLocalizations", `/v2/inAppPurchases/${iap.id}/inAppPurchaseLocalizations`);
+  const sep = locsPath.includes("?") ? "&" : "?";
+  const locs = await api("GET", `${locsPath}${sep}limit=50`);
   const loc = (locs.data || []).find((l) => l.attributes.locale === LOCALE);
   const attrs = { name: spec.name, description: spec.description };
   if (!EXECUTE) {
@@ -107,7 +117,8 @@ async function ensureIap(spec) {
     log(`  ＋価格予定: ¥${spec.priceYen}`);
     return;
   }
-  const ppId = await findPricePointJPN(iap.id, spec.priceYen);
+  const ppPath = relatedPath(iap, "pricePoints", `/v2/inAppPurchases/${iap.id}/pricePoints`);
+  const ppId = await findPricePointJPN(ppPath, spec.priceYen);
   if (!ppId) {
     log(`  ⚠ ¥${spec.priceYen} に一致する価格ポイントが見つからず（画面で価格設定してください）`);
     return;
