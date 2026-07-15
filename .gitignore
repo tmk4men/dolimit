@@ -26,3 +26,9 @@ build/
 /macos/
 /windows/
 .metadata
+
+# App Store Connect の秘密情報（絶対にコミットしない）
+*.p8
+.asc.json
+scripts/asc/.asc.json
+scripts/asc/config.json
