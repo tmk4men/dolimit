@@ -27,8 +27,11 @@ import 'purchase_service.dart';
 /// 購入結果は [InAppPurchase.purchaseStream] に非同期で流れてくるため、
 /// buyPro / restore はその到着を待って結果を返す。
 class StorePurchaseService implements PurchaseService {
-  StorePurchaseService({InAppPurchase? iap})
-      : _iap = iap ?? InAppPurchase.instance {
+  /// [isStoreKit] は StoreKit(iOS) 固有の後始末を行うかどうか。既定は実機の判定。
+  /// テストから差し替えるためだけに開いている。
+  StorePurchaseService({InAppPurchase? iap, bool? isStoreKit})
+      : _iap = iap ?? InAppPurchase.instance,
+        _isStoreKit = isStoreKit ?? Platform.isIOS {
     _sub = _iap.purchaseStream.listen(
       _onPurchaseUpdate,
       onError: (Object e) => _failAll('購入処理に失敗しました: $e'),
@@ -36,6 +39,7 @@ class StorePurchaseService implements PurchaseService {
   }
 
   final InAppPurchase _iap;
+  final bool _isStoreKit;
   StreamSubscription<List<PurchaseDetails>>? _sub;
 
   /// 進行中の購入。商品 ID ごとに持つ。1 本の Completer を共有すると、別商品の
@@ -45,6 +49,10 @@ class StorePurchaseService implements PurchaseService {
 
   /// 進行中の復元。復元は商品を指定しないので 1 本でよい。
   Completer<PurchaseResult>? _restore;
+
+  /// 進行中の未完了トランザクション回収。起動時と購入失敗時の両方から呼ばれるので、
+  /// 二重に走らせず相乗りさせる（片方が掃除した結果をもう片方が 0 件と誤認しない）。
+  Future<int>? _draining;
 
   /// 商品情報のキャッシュ（価格表示用）。
   ///
@@ -98,9 +106,13 @@ class StorePurchaseService implements PurchaseService {
   }
 
   /// 未完了トランザクションを権利付与して完了させる。完了させた件数を返す。
+  /// 同時に呼ばれたら進行中のものに相乗りする。
+  Future<int> _drainUnfinished() =>
+      _draining ??= _drainOnce().whenComplete(() => _draining = null);
+
   /// iOS(StoreKit 2) 専用。Android は Play Billing 側が再送するので何もしない。
-  Future<int> _drainUnfinished() async {
-    if (!Platform.isIOS) return 0;
+  Future<int> _drainOnce() async {
+    if (!_isStoreKit) return 0;
     try {
       final txs =
           await SK2Transaction.unfinishedTransactions().timeout(_storeTimeout);
@@ -110,7 +122,9 @@ class StorePurchaseService implements PurchaseService {
         // 先に権利を付与する。finish が失敗しても解放は守る。
         _onUnlocked?.call(t.productId);
         try {
-          await SK2Transaction.finish(int.parse(t.id));
+          // ネイティブの finish は対象が見つからないと completion を呼ばないまま
+          // 終わる経路がある（プラグインの Swift 側に else が無い）。待ち切らない。
+          await SK2Transaction.finish(int.parse(t.id)).timeout(_storeTimeout);
           finished++;
         } catch (e) {
           debugPrint('StorePurchaseService: finish failed (${t.productId}): $e');
@@ -182,23 +196,30 @@ class StorePurchaseService implements PurchaseService {
   }
 
   /// 商品情報を返す（キャッシュ優先、無ければ取得）。取れなければ null。
+  ///
+  /// Sandbox の商品取得は散発的に空を返す。しかも queryProductDetails は例外では
+  /// なく「空リスト＋notFoundIDs」で返してくる（プラグインが内部で握るため）ので、
+  /// 一度の空を「商品が無い」と即断せず試し直す。ここを一発勝負にすると、
+  /// キャッシュが冷えている間のタップが購入リトライに届かないまま落ちる。
   Future<ProductDetails?> _resolve(String productId) async {
     final cached = _products[productId];
     if (cached != null) return cached;
-    try {
-      final resp =
-          await _iap.queryProductDetails({productId}).timeout(_storeTimeout);
-      if (resp.productDetails.isEmpty) {
+    for (var attempt = 1;; attempt++) {
+      try {
+        final resp =
+            await _iap.queryProductDetails({productId}).timeout(_storeTimeout);
+        if (resp.productDetails.isNotEmpty) {
+          final product = resp.productDetails.first;
+          _products[productId] = product;
+          return product;
+        }
         debugPrint('StorePurchaseService: $productId not found '
             '(error=${resp.error?.message}, notFound=${resp.notFoundIDs})');
-        return null;
+      } catch (e) {
+        debugPrint('StorePurchaseService: queryProductDetails failed: $e');
       }
-      final product = resp.productDetails.first;
-      _products[productId] = product;
-      return product;
-    } catch (e) {
-      debugPrint('StorePurchaseService: queryProductDetails failed: $e');
-      return null;
+      if (attempt >= _buyAttempts) return null;
+      await Future<void>.delayed(_retryBackoff * attempt);
     }
   }
 
@@ -222,8 +243,11 @@ class StorePurchaseService implements PurchaseService {
         // 同じ商品の未完了トランザクションが残っていると、支払いシートを出す前に
         // 弾かれる。掃除できたなら、それが原因なので即やり直す。
         if (e.code == 'storekit_duplicate_product_object') {
-          final drained = await _drainUnfinished();
-          if (drained > 0 && attempt < _buyAttempts) continue;
+          // 掃除して即やり直す。件数は見ない: 0 件は「起動時の回収が先に片付けた」
+          // ときにも起きるので、それを失敗扱いにすると StoreKit の生の英文が
+          // そのまま画面に出る（今回のリジェクトと同じ種類の見え方になる）。
+          await _drainUnfinished();
+          if (attempt < _buyAttempts) continue;
           return PurchaseResult(
               PurchaseOutcome.error, '購入を開始できませんでした: ${e.message ?? e.code}');
         }
@@ -277,16 +301,24 @@ class StorePurchaseService implements PurchaseService {
       // pending は「支払いシート表示中」。まだ何も決まっていない。
       if (p.status == PurchaseStatus.pending) continue;
 
+      // 権利付与を先に済ませる。シートが閉じていても確実に付与する（中断復帰にも
+      // 効く）。完了通知より前に置くのは、それが失敗・ハングしても「課金したのに
+      // 解放されない」を作らないため。回収経路(_drainOnce)とも順序を揃えてある。
+      if (p.status == PurchaseStatus.purchased ||
+          p.status == PurchaseStatus.restored) {
+        _onUnlocked?.call(p.productID);
+      }
+
       // 完了を通知しないとトランザクションが残り続け、以後この商品の購入が
       // duplicate 扱いで弾かれる。SK2 は restored の pendingCompletePurchase を
       // 常に false で返してくるので、そこを信じず状態から判断する。
       final needsFinish = p.pendingCompletePurchase ||
-          (Platform.isIOS &&
+          (_isStoreKit &&
               (p.status == PurchaseStatus.purchased ||
                   p.status == PurchaseStatus.restored));
       if (needsFinish) {
         try {
-          await _iap.completePurchase(p);
+          await _iap.completePurchase(p).timeout(_storeTimeout);
         } catch (e) {
           debugPrint('StorePurchaseService: completePurchase failed: $e');
         }
@@ -294,8 +326,6 @@ class StorePurchaseService implements PurchaseService {
 
       switch (p.status) {
         case PurchaseStatus.purchased:
-          // シートが閉じていても確実に権利を付与する（中断復帰にも効く）。
-          _onUnlocked?.call(p.productID);
           _settle(p.productID,
               PurchaseResult(PurchaseOutcome.purchased, null, {p.productID}));
         case PurchaseStatus.restored:
@@ -314,9 +344,7 @@ class StorePurchaseService implements PurchaseService {
     }
 
     if (restored.isNotEmpty) {
-      for (final id in restored) {
-        _onUnlocked?.call(id);
-      }
+      // 権利付与はループ内で済んでいる。ここは待っている restore() を返すだけ。
       final pending = _restore;
       _restore = null;
       if (pending != null && !pending.isCompleted) {
