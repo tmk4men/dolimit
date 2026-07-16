@@ -148,11 +148,12 @@ class _ProSheetState extends State<ProSheet> {
                     style: TextStyle(color: context.c.sub)),
               ),
             ),
-          // ブーストへの相互リンク（未購入時のみ）。
+          // ブーストへの相互リンク（未購入時のみ）。処理中は塞ぐ: 別シートから
+          // 購入を始められると、進行中の待ちとぶつかって「処理中です」になる。
           if (!isBoosted)
             Center(
               child: TextButton(
-                onPressed: () => BoostSheet.present(context),
+                onPressed: _busy ? null : () => BoostSheet.present(context),
                 child: Text('または ¥100 のブースト（買い切り）で少し増やす',
                     style: TextStyle(color: context.c.sub, fontSize: 12.5)),
               ),

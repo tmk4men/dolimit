@@ -149,10 +149,12 @@ class _BoostSheetState extends State<BoostSheet> {
               ),
             ),
           // Pro への相互リンク（未購入時のみ）。上限をもっと増やしたい人向け。
+          // 処理中は塞ぐ: 別シートから購入を始められると、進行中の待ちと
+          // ぶつかって「処理中です」になる。
           if (!isPro)
             Center(
               child: TextButton(
-                onPressed: () => ProSheet.present(context),
+                onPressed: _busy ? null : () => ProSheet.present(context),
                 child: Text('上限をもっと増やすなら Pro',
                     style: TextStyle(color: context.c.sub, fontSize: 12.5)),
               ),
