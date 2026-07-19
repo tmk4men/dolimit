@@ -86,6 +86,11 @@ else
   puts "[add_ios_widget] #{WIDGET_NAME} は既存。ビルドフェーズ順のみ調整します。"
 end
 
+# --- 既存ターゲットの掃除（前バージョンで付いた Generated.xcconfig 継承を除去）--------
+# 版数は Info.plist 焼き込みに一本化したので、widget に Flutter の xcconfig は不要。
+# 継承が残っていると Flutter のビルド設定を引き込んで循環の一因になり得るため必ず外す。
+widget.build_configurations.each { |c| c.base_configuration_reference = nil }
+
 # --- "Cycle inside Runner" 回避: Embed App Extensions を最後のフェーズへ移動 --------
 # CocoaPods の [CP] Embed Pods Frameworks より後ろに置くと循環が切れる。
 embed = runner.copy_files_build_phases.find { |p| p.symbol_dst_subfolder_spec == :plug_ins }
