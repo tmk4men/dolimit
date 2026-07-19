@@ -3,7 +3,7 @@ description: "やっとこ — 先延ばしにしないToDo。今日やること
 publish_to: "none"
 # 通知ディープリンク / 音声認識 / Pro 課金 / 一時枠拡張 を追加。
 # Android は versionCode（+ の右）が上がらないとアップロードを弾かれる。
-version: 0.2.0+3
+version: 1.0.1+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

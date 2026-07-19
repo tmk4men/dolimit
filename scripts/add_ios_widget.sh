@@ -25,6 +25,16 @@ cp "native_widget_reference/ios/DoLimitWidget.swift" "${DEST}/DoLimitWidget.swif
 cp "${SRC}/Info.plist"                                "${DEST}/Info.plist"
 cp "${SRC}/DoLimitWidget.entitlements"                "${DEST}/DoLimitWidget.entitlements"
 
+# バージョンを pubspec.yaml から焼き込む（App Store は appex とアプリの版数一致が必須）。
+# 例: version: 1.0.1+2 → CFBundleShortVersionString=1.0.1 / CFBundleVersion=2
+VER_LINE="$(grep -E '^version:' pubspec.yaml | head -1 | sed -E 's/^version:[[:space:]]*//')"
+VER_NAME="${VER_LINE%%+*}"
+VER_BUILD="${VER_LINE##*+}"
+[ "$VER_BUILD" = "$VER_LINE" ] && VER_BUILD="1"   # +がない場合の保険
+echo "    バージョンを焼き込み: ${VER_NAME} (build ${VER_BUILD})"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${VER_NAME}" "${DEST}/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${VER_BUILD}"           "${DEST}/Info.plist"
+
 echo "==> [2/3] Runner に App Group(${APP_GROUP}) を付与"
 RUNNER_ENT="ios/Runner/Runner.entitlements"
 if [ -f "$RUNNER_ENT" ]; then
