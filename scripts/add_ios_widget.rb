@@ -91,14 +91,8 @@ end
 # 継承が残っていると Flutter のビルド設定を引き込んで循環の一因になり得るため必ず外す。
 widget.build_configurations.each { |c| c.base_configuration_reference = nil }
 
-# --- "Cycle inside Runner" 回避: Embed App Extensions を最後のフェーズへ移動 --------
-# CocoaPods の [CP] Embed Pods Frameworks より後ろに置くと循環が切れる。
-embed = runner.copy_files_build_phases.find { |p| p.symbol_dst_subfolder_spec == :plug_ins }
-if embed
-  runner.build_phases.delete(embed)
-  runner.build_phases << embed
-  puts '[add_ios_widget] Embed App Extensions を末尾へ移動（Cycle 回避）。'
-end
+# ※ "Cycle inside Runner" 対策はフェーズ並べ替えでは効かない（pod install が毎回上書きするため）。
+#    add_ios_widget.sh で CocoaPods を静的リンクにし [CP] Embed Pods Frameworks 自体を無くして根絶する。
 
 project.save
 puts '[add_ios_widget] 完了。'

@@ -52,18 +52,28 @@ if ! ruby -e "require 'xcodeproj'" >/dev/null 2>&1; then
   echo "    xcodeproj gem を導入します..."
   gem install xcodeproj >/dev/null 2>&1 || sudo gem install xcodeproj
 fi
+ruby scripts/add_ios_widget.rb
 
-# 先に pod install して CocoaPods の [CP] ビルドフェーズを確定させておく。
-# こうしてから Widget の Embed フェーズを「最後」に置くと "Cycle inside Runner" を回避できる。
-if command -v pod >/dev/null 2>&1; then
-  echo "    pod install（ビルドフェーズ順を確定）..."
-  ( cd ios && pod install )
+# --- "Cycle inside Runner" の根絶: CocoaPods を静的リンクにする ---------------------
+# Widget 埋め込み(Embed App Extensions)と [CP] Embed Pods Frameworks が循環してアーカイブ
+# 失敗する。静的リンクにすると Pod フレームワークの埋め込みフェーズ自体が消え、循環の相手が
+# いなくなるため物理的に発生しない。フェーズ並べ替えは pod install が毎回上書きするので不可。
+PODFILE="ios/Podfile"
+if grep -qE "use_frameworks!.*:linkage[[:space:]]*=>[[:space:]]*:static" "$PODFILE"; then
+  echo "==> CocoaPods は既に静的リンク"
+elif grep -qE "^[[:space:]]*use_frameworks!" "$PODFILE"; then
+  echo "==> CocoaPods を静的リンクに変更（Cycle 根絶）"
+  sed -i '' -E 's/^([[:space:]]*)use_frameworks!.*$/\1use_frameworks! :linkage => :static/' "$PODFILE"
 else
-  echo "    ⚠️ CocoaPods(pod) が見つかりません。flutter build 時の pod install 後に"
-  echo "       ./scripts/add_ios_widget.sh を再実行するとフェーズ順が確定します。"
+  echo "==> ⚠️ Podfile に use_frameworks! が見当たりません。手動で :linkage => :static を確認してください。"
 fi
 
-ruby scripts/add_ios_widget.rb
+echo "==> pod install（リンク方式の変更を反映。Pods を作り直します）"
+if command -v pod >/dev/null 2>&1; then
+  ( cd ios && rm -rf Pods && pod install )
+else
+  echo "    ⚠️ CocoaPods(pod) が見つかりません。flutter build 時に自動で pod install されます。"
+fi
 
 echo ""
 echo "✅ DoLimitWidget を iOS プロジェクトに統合しました。"
