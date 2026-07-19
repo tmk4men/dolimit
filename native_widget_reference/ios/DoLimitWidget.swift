@@ -8,12 +8,12 @@ private let appGroupId = "group.dolimit.widget"
 
 // アプリ本体の配色に合わせる（ライト/ダークで自動切替）。
 // todayAccent: light #F23B30 / dark #FF5B50、card: white / #1A1C21
-private let accentColor = Color(UIColor { trait in
+private let dolimitAccent = Color(UIColor { trait in
     trait.userInterfaceStyle == .dark
         ? UIColor(red: 1.0, green: 0.357, blue: 0.314, alpha: 1)   // #FF5B50
         : UIColor(red: 0.949, green: 0.231, blue: 0.188, alpha: 1) // #F23B30
 })
-private let cardColor = Color(UIColor { trait in
+private let dolimitCard = Color(UIColor { trait in
     trait.userInterfaceStyle == .dark
         ? UIColor(red: 0.102, green: 0.110, blue: 0.129, alpha: 1)  // #1A1C21
         : UIColor.white
@@ -63,7 +63,7 @@ struct DoLimitWidgetEntryView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             // タップでアプリを起動して TODAY を開く（Dart 側が dolimit://today を待ち受ける）。
             .widgetURL(URL(string: "dolimit://today"))
-            .widgetBackground(cardColor)
+            .widgetBackground(dolimitCard)
     }
 
     @ViewBuilder private var content: some View {
@@ -82,7 +82,7 @@ struct DoLimitWidgetEntryView: View {
                     .foregroundColor(.secondary)
                 Text("\(entry.count)")
                     .font(.system(size: 34, weight: .heavy))
-                    .foregroundColor(accentColor)
+                    .foregroundColor(dolimitAccent)
                 ForEach(entry.titles.prefix(maxTitles), id: \.self) { t in
                     Text("・\(t)")
                         .font(.system(size: 12))
