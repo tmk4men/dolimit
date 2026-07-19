@@ -52,6 +52,17 @@ if ! ruby -e "require 'xcodeproj'" >/dev/null 2>&1; then
   echo "    xcodeproj gem を導入します..."
   gem install xcodeproj >/dev/null 2>&1 || sudo gem install xcodeproj
 fi
+
+# 先に pod install して CocoaPods の [CP] ビルドフェーズを確定させておく。
+# こうしてから Widget の Embed フェーズを「最後」に置くと "Cycle inside Runner" を回避できる。
+if command -v pod >/dev/null 2>&1; then
+  echo "    pod install（ビルドフェーズ順を確定）..."
+  ( cd ios && pod install )
+else
+  echo "    ⚠️ CocoaPods(pod) が見つかりません。flutter build 時の pod install 後に"
+  echo "       ./scripts/add_ios_widget.sh を再実行するとフェーズ順が確定します。"
+fi
+
 ruby scripts/add_ios_widget.rb
 
 echo ""
