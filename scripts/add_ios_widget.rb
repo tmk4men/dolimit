@@ -91,8 +91,23 @@ end
 # 継承が残っていると Flutter のビルド設定を引き込んで循環の一因になり得るため必ず外す。
 widget.build_configurations.each { |c| c.base_configuration_reference = nil }
 
-# ※ "Cycle inside Runner" 対策はフェーズ並べ替えでは効かない（pod install が毎回上書きするため）。
-#    add_ios_widget.sh で CocoaPods を静的リンクにし [CP] Embed Pods Frameworks 自体を無くして根絶する。
+# --- "Cycle inside Runner" 対策 ---------------------------------------------------
+# (1) Pod フレームワークとの循環 → add_ios_widget.sh の静的リンク化で相手を消滅済み。
+# (2) Flutter の "Thin Binary" フェーズとの循環 → Embed App Extensions をその直前へ移動。
+#     Thin Binary は Flutter のフェーズ（CocoaPods 管理外）なので、この並べ替えは pod install
+#     に上書きされず安定して効く。
+embed = runner.copy_files_build_phases.find { |p| p.symbol_dst_subfolder_spec == :plug_ins }
+if embed
+  runner.build_phases.delete(embed)
+  thin_idx = runner.build_phases.index { |ph| ph.display_name.to_s.include?('Thin Binary') }
+  if thin_idx
+    runner.build_phases.insert(thin_idx, embed)
+    puts '[add_ios_widget] Embed App Extensions を Thin Binary の直前へ移動（Cycle 回避）。'
+  else
+    runner.build_phases << embed
+    puts '[add_ios_widget] Thin Binary が見つからないため Embed App Extensions を末尾へ。'
+  end
+end
 
 project.save
 puts '[add_ios_widget] 完了。'
