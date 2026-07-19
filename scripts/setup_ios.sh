@@ -45,7 +45,7 @@ set_plist NSSpeechRecognitionUsageDescription "話した言葉を文字にして
 /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$PLIST" 2>/dev/null \
   || /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST"
 
-echo "==> [5/5] AppDelegate に通知デリゲートを設定"
+echo "==> [5/6] AppDelegate に通知デリゲートを設定"
 cat > ios/Runner/AppDelegate.swift <<'SWIFT'
 import Flutter
 import UIKit
@@ -66,6 +66,10 @@ import UIKit
 }
 SWIFT
 
+echo "==> [6/6] ホーム画面ウィジェット(DoLimitWidget)を組み込み"
+"$ROOT/scripts/add_ios_widget.sh"
+
 echo ""
 echo "✅ セットアップ完了。バンドルID = ${ORG}.${PROJECT_NAME} / 表示名 = ${DISPLAY_NAME}"
+echo "   ⚠️ Xcode では Runner と DoLimitWidget の【両方】のターゲットで署名 Team を選ぶこと。"
 echo "   次は docs/ios-release.md の「3. Xcode（署名）」→「4. ビルドとアップロード」へ。"

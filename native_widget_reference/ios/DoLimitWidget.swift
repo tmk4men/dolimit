@@ -2,6 +2,7 @@
 // App Group（例: group.dolimit.widget）を Runner と Widget の両ターゲットに付与すること。
 import WidgetKit
 import SwiftUI
+import UIKit
 
 private let appGroupId = "group.dolimit.widget"
 
