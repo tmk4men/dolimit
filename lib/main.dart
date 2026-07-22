@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'data/store.dart';
+import 'services/ads.dart';
 import 'services/notification_service.dart';
 import 'services/purchase_service.dart';
 import 'services/speech_service.dart';
@@ -38,6 +39,10 @@ Future<void> main() async {
     }
   };
   unawaited(purchase.init());
+
+  // 広告 SDK の初期化。Web ではスタブの no-op。応答を待つと起動が遅れるので
+  // 投げっぱなしにする（バナーは読み込めた時点で各画面に出る）。
+  unawaited(initAds());
 
   // 通知が既定ONなのに権限未取得で鳴らない問題を防ぐため、起動時に権限を要求する。
   // Web ではスタブが true を返すだけの no-op。

@@ -173,8 +173,10 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     if (ok) {
-      messenger.showSnackBar(
-          SnackBar(content: Text('${_label(target)}に追加しました')));
+      messenger.clearSnackBars();
+      messenger.showSnackBar(SnackBar(
+          content: Text('${_label(target)}に追加しました'),
+          duration: const Duration(milliseconds: 2200)));
     } else {
       // 満杯なら「枠を増やす」導線つきで知らせる。
       showCapacityFullSnack(context, target);

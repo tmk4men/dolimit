@@ -76,8 +76,11 @@ class _EditTaskSheetState extends State<EditTaskSheet> {
                   // 空欄のまま保存すると setTitle が黙って無視するので、
                   // 「保存した」と誤解させないようここで止める。
                   if (_title.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('タスク名を入力してください')));
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(const SnackBar(
+                          content: Text('タスク名を入力してください'),
+                          duration: Duration(milliseconds: 2200)));
                     return;
                   }
                   final app = context.read<AppState>();

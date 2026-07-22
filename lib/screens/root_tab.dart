@@ -5,6 +5,7 @@ import '../models/enums.dart';
 import '../state/app_navigation.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
+import '../services/ads.dart';
 import '../widgets/add_task_sheet.dart';
 import '../widgets/ui_kit.dart';
 import 'box_screen.dart';
@@ -40,6 +41,11 @@ class RootTab extends StatelessWidget {
       const LaterScreen(),
     ];
 
+    // BOX タブでだけ、ナビバーの真上にバナーを出す（Pro は非表示）。
+    // bottomNavigationBar に含めると Scaffold が FAB をこの上へ持ち上げるので、
+    // ＋ボタンとも本文とも重ならない。
+    final showBanner = nav.tab == AppNavigation.boxTab && !app.isPro;
+
     return Scaffold(
       body: SafeArea(
           bottom: false,
@@ -48,12 +54,16 @@ class RootTab extends StatelessWidget {
         onTap: () => AddTaskSheet.present(context,
             target: addTarget, onSort: () => goToTab(AppNavigation.boxTab)),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: nav.tab,
-        onDestinationSelected: goToTab,
-        backgroundColor: context.c.card,
-        indicatorColor: context.c.boxSoft,
-        destinations: [
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showBanner) const AdBanner(),
+          NavigationBar(
+            selectedIndex: nav.tab,
+            onDestinationSelected: goToTab,
+            backgroundColor: context.c.card,
+            indicatorColor: context.c.boxSoft,
+            destinations: [
           const NavigationDestination(
               icon: Icon(Icons.inbox_outlined),
               selectedIcon: Icon(Icons.inbox),
@@ -72,6 +82,8 @@ class RootTab extends StatelessWidget {
             selectedIcon: _CountBadge(
                 count: laterCount, child: const Icon(Icons.nightlight)),
             label: 'LATER',
+          ),
+            ],
           ),
         ],
       ),

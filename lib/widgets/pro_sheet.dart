@@ -58,11 +58,17 @@ class _ProSheetState extends State<ProSheet> {
     if (result.unlocked && result.covers(PurchaseService.proProductId)) {
       app.setPro(true);
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Proを解除しました')));
+      messenger.clearSnackBars();
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Proを解除しました'),
+          duration: Duration(milliseconds: 2200)));
       return;
     }
     setState(() => _busy = false);
-    messenger.showSnackBar(SnackBar(content: Text(result.message ?? '購入できませんでした')));
+    messenger.clearSnackBars();
+    messenger.showSnackBar(SnackBar(
+        content: Text(result.message ?? '購入できませんでした'),
+        duration: const Duration(milliseconds: 2200)));
   }
 
   @override

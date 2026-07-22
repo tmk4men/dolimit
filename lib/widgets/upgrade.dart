@@ -19,12 +19,15 @@ void showCapacityFullSnack(BuildContext context, TaskStatus target) {
   final ctx = appNavigatorKey.currentContext ?? context;
   final app = ctx.read<AppState>();
   final canUpgrade = !(app.isPro && app.isBoosted);
-  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-    content: Text(Limits.fullMessage(target)),
-    action: canUpgrade
-        ? SnackBarAction(label: '枠を増やす', onPressed: showUpgradeSheet)
-        : null,
-  ));
+  ScaffoldMessenger.of(ctx)
+    ..clearSnackBars()
+    ..showSnackBar(SnackBar(
+      content: Text(Limits.fullMessage(target)),
+      duration: const Duration(seconds: 3),
+      action: canUpgrade
+          ? SnackBarAction(label: '枠を増やす', onPressed: showUpgradeSheet)
+          : null,
+    ));
 }
 
 /// 「枠を増やす」ハブ。ブースト(¥100・恒久)と Pro を並べて選ばせる。
@@ -58,10 +61,19 @@ class _UpgradeSheet extends StatelessWidget {
           const Text('枠を増やす',
               style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
           const SizedBox(height: 4),
-          Text('広告なし。買い切りだけ。',
+          Text('買い切りだけ。Proなら広告も消える。',
               style: TextStyle(fontSize: 13, color: context.c.sub)),
           const SizedBox(height: 14),
-          if (!app.isBoosted)
+          // Pro を主役に。色を付けて先に置き、いちばん目立たせる。
+          _Option(
+            icon: Icons.workspace_premium,
+            title: app.isPro ? 'Pro（解除済み）' : 'Pro ¥500（買い切り）',
+            subtitle: 'BOX/TODAY/LATER/ジャンルの上限を拡張＋広告を非表示',
+            onTap: app.isPro ? null : () => _openThen(context, ProSheet.present),
+            emphasized: !app.isPro,
+          ),
+          if (!app.isBoosted) ...[
+            const SizedBox(height: 10),
             _Option(
               icon: Icons.bolt,
               title: 'ブースト ¥100（買い切り）',
@@ -69,13 +81,7 @@ class _UpgradeSheet extends StatelessWidget {
                   'BOX+${Limits.boostBonusBox} / TODAY+${Limits.boostBonusToday} / LATER+${Limits.boostBonusLater} を恒久追加',
               onTap: () => _openThen(context, BoostSheet.present),
             ),
-          if (!app.isBoosted) const SizedBox(height: 10),
-          _Option(
-            icon: Icons.workspace_premium,
-            title: app.isPro ? 'Pro（解除済み）' : 'Pro ¥500（買い切り）',
-            subtitle: 'BOX/TODAY/LATER/ジャンルの上限をさらに拡張',
-            onTap: app.isPro ? null : () => _openThen(context, ProSheet.present),
-          ),
+          ],
         ],
       ),
     );
@@ -95,39 +101,56 @@ class _Option extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
+  final bool emphasized; // おすすめ（Pro）だけ色を付けて強調する
   const _Option({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.emphasized = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return PressableCard(
-      onTap: onTap,
-      color: context.c.fill,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Row(
-        children: [
-          Icon(icon, color: context.c.ink),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style: TextStyle(fontSize: 12, color: context.c.sub)),
-              ],
+    final accent = context.c.todayAccent;
+    final bg = emphasized ? context.c.todaySoft : context.c.fill;
+    final fg = emphasized ? accent : context.c.ink;
+    return Container(
+      // 強調時はアクセント色の枠線で「押すべきボタン」だと伝える。
+      decoration: emphasized
+          ? BoxDecoration(
+              borderRadius: AppTheme.radiusCard,
+              border: Border.all(color: accent, width: 1.5),
+            )
+          : null,
+      child: PressableCard(
+        onTap: onTap,
+        color: bg,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, color: fg),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: emphasized ? fg : null)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      style: TextStyle(fontSize: 12, color: context.c.sub)),
+                ],
+              ),
             ),
-          ),
-          if (onTap != null)
-            Icon(Icons.chevron_right, color: context.c.sub, size: 20),
-        ],
+            if (onTap != null)
+              Icon(Icons.chevron_right,
+                  color: emphasized ? accent : context.c.sub, size: 20),
+          ],
+        ),
       ),
     );
   }

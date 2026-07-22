@@ -59,11 +59,17 @@ class _BoostSheetState extends State<BoostSheet> {
     if (result.unlocked && result.covers(PurchaseService.boostProductId)) {
       app.setBoost(true);
       Navigator.pop(context);
-      messenger.showSnackBar(const SnackBar(content: Text('ブーストを購入しました')));
+      messenger.clearSnackBars();
+      messenger.showSnackBar(const SnackBar(
+          content: Text('ブーストを購入しました'),
+          duration: Duration(milliseconds: 2200)));
       return;
     }
     setState(() => _busy = false);
-    messenger.showSnackBar(SnackBar(content: Text(result.message ?? '購入できませんでした')));
+    messenger.clearSnackBars();
+    messenger.showSnackBar(SnackBar(
+        content: Text(result.message ?? '購入できませんでした'),
+        duration: const Duration(milliseconds: 2200)));
   }
 
   @override

@@ -128,13 +128,21 @@ class GenreManagementScreen extends StatelessWidget {
                 if (existing == null) {
                   final err = app.addGenre(controller.text, color);
                   if (err != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(SnackBar(
+                          content: Text(err),
+                          duration: const Duration(milliseconds: 2200)));
                     return;
                   }
                 } else {
                   final err = app.renameGenre(existing, controller.text);
                   if (err != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(SnackBar(
+                          content: Text(err),
+                          duration: const Duration(milliseconds: 2200)));
                     return;
                   }
                   app.setGenreColor(existing, color);
