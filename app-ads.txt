@@ -1,1 +1,9 @@
-google.com, pub-2783540275927131, DIRECT, f08c47fec0942fa0
+# app-ads.txt (IAB Tech Lab) — このファイルはリポジトリ内の「控え」。
+# 実際に配信されているのは https://tmk4men.github.io/app-ads.txt （別リポジトリ
+# tmk4men/tmk4men.github.io のルート）。AdMob はドメイン直下しか見ないため、
+# プロジェクトページ（/dolimit/ 配下）に置いても認識されない。
+# 前提：App Store 掲載の「デベロッパWebサイト（marketingUrl）」が
+#       https://tmk4men.github.io/... であること。→ scripts/asc/asc.config.dolimit.json
+# 内容を変えるときは必ず配信側（tmk4men.github.io リポジトリ）と両方を更新する。
+google.com, pub-2783540275927131, DIRECT, f08c47fec0942fa0   # やっとこ(DoLimit) iOS
+google.com, pub-5634961953346923, DIRECT, f08c47fec0942fa0
